@@ -68,6 +68,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="index_files/libs/bootstrap/bootstrap.min.js"></script>
 <link href="index_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="index_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<link href="index_files/libs/quarto-contrib/fontawesome6-0.1.0/all.css" rel="stylesheet">
+<link href="index_files/libs/quarto-contrib/fontawesome6-0.1.0/latex-fontsize.css" rel="stylesheet">
 
   <script>window.backupDefine = window.define; window.define = undefined;</script><script src="https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/katex.min.js"></script>
   <script>document.addEventListener("DOMContentLoaded", function () {
@@ -173,6 +175,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </header>
 
+<p><i class="fa-brands fa-github" aria-label="github"></i> <a href="https://github.com/avramaral/INLA_tutorial" style="text-decoration:none;">GitHub repository</a></p>
 <p>In this tutorial, we will use the following <code>R</code> packages.</p>
 <div class="cell" data-result="hide">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"INLA"</span>)</span>
@@ -370,7 +373,7 @@ fitted.Predictor.14 110.86481 5.9359151   99.00816 110.86418  122.72683</code></
 <section id="generalized-linear-models-for-disease-mapping" class="level1">
 <h1>Generalized linear models (for disease mapping)</h1>
 <p>Next, let us fit a generalized linear model (GLM) for a problem in disease mapping. Initially, we will ignore the underlying spatial structure, but we will consider it in the following part. This example was extracted from <a href="https://www.paulamoraga.com/book-geospatial/sec-arealdataexamplest.html">Geospatial Health Data: Modeling and Visualization with R-INLA and Shiny</a> (<a href="https://www.paulamoraga.com/book-geospatial/index.html">Moraga, 2019</a>).</p>
-<p>We will model the number of cases of lung cancer in Ohio, USA, from 1968 to 1988. The data can be downloaded from <a href=".">here</a>.</p>
+<p>We will model the number of cases of lung cancer in Ohio, USA, from 1968 to 1988. The data can be downloaded from <a href="https://github.com/avramaral/INLA_tutorial/raw/main/data/example_2/example_2_data.zip">here</a>.</p>
 <p>After downloading the data, we can do the following</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load data</span></span>
@@ -1336,7 +1339,7 @@ Posterior summaries for the linear predictor and the fitted values are computed
 <p>The smoothness parameter <span class="math inline">\nu</span> of the Matérn covariance structure is related to <span class="math inline">\alpha</span> in the SPDE formulation through <span class="math inline">\alpha = \nu + (d / 2)</span>, where <span class="math inline">d</span> (typically <span class="math inline">d = 2</span>) is dimension. In <code>INLA</code>, <span class="math inline">0 \leq \alpha &lt; 2</span>.</p>
 <section id="pm2.5" class="level2">
 <h2 class="anchored" data-anchor-id="pm2.5">PM2.5</h2>
-<p>We will analyze the particulate matter 2.5 (PM2.5), measured in <span class="math inline">\mu \text{g} / \text{m}^3)</span> levels in the United States (USA) in 2022. The data is the same as the one analyzed in <a href="https://link.springer.com/article/10.1007/s13253-023-00571-0">Amaral et al.</a> (<a href="https://link.springer.com/article/10.1007/s13253-023-00571-0">2023</a>). The data can be downloaded from <a href=".">here</a>.</p>
+<p>We will analyze the particulate matter 2.5 (PM2.5), measured in <span class="math inline">\mu \text{g} / \text{m}^3)</span> levels in the United States (USA) in 2022. The data is the same as the one analyzed in <a href="https://link.springer.com/article/10.1007/s13253-023-00571-0">Amaral et al.</a> (<a href="https://link.springer.com/article/10.1007/s13253-023-00571-0">2023</a>). The data can be downloaded from <a href="https://github.com/avramaral/INLA_tutorial/raw/main/data/example_4/example_4_data.zip">here</a>.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb91"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb91-1"><a href="#cb91-1" aria-hidden="true" tabindex="-1"></a>data_USA <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="at">file =</span> <span class="st">"data/example_4/data_USA.rds"</span>)</span>
 <span id="cb91-2"><a href="#cb91-2" aria-hidden="true" tabindex="-1"></a>USA <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="at">file =</span> <span class="st">"data/example_4/USA_filtered.rds"</span>)</span>

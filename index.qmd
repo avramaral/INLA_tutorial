@@ -8,6 +8,8 @@ format:
     css: styles.css
 ---
 
+{{< fa brands github >}} <a href="https://github.com/avramaral/INLA_tutorial" style="text-decoration:none;">GitHub repository</a>
+
 ```{r, echo = F}
 knitr::opts_knit$set(global.par = T)
 
@@ -30,6 +32,7 @@ library("patchwork")
 ```
 
 To install `INLA`, you can follow the instruction [here](https://www.r-inla.org/download-install). Alternatively,
+
 ```{r, eval = F}
 install.packages("INLA", repos = c(getOption("repos"), INLA = "https://inla.r-inla-download.org/R/stable"), dep = TRUE) 
 ```
@@ -56,20 +59,15 @@ custom_theme <-  theme_bw() + theme(legend.position = "right",
 
 # INLA
 
-In a nutshell, the integrated nested Laplace approximation (INLA) ([Rue et al., 2009](https://doi.org/10.1111/j.1467-9868.2008.00700.x)) method is used to approximate Bayesian inference in latent Gaussian models. In particular, it can be used to fit models of the form
-\begin{align*}
-	y_i|S(x_i), &\theta \sim \pi(y_i|S(x_i), \theta), \text{ for } i \in \{1, \cdots, n\} \\
-	S(x)|\theta &\sim \text{Normal}(\mu(\theta), Q(\theta)^{-1}) \\
-	\theta &\sim \pi(\theta),
-\end{align*}
-where $y = (y_1, \ldots, y_n)$ is the vector or observed values, $x = (x_1, \ldots, x_n)$ is a Gaussian random field, and $\theta = (\theta_1, \ldots, \theta_k)$, for some $k \in \mathbb{N}$, is a vector of hyperparameters. $\mu(\theta)$ and $Q(\theta)$ represent the mean vector and the precision matrix,
-respectively.
+In a nutshell, the integrated nested Laplace approximation (INLA) ([Rue et al., 2009](https://doi.org/10.1111/j.1467-9868.2008.00700.x)) method is used to approximate Bayesian inference in latent Gaussian models. In particular, it can be used to fit models of the form \begin{align*}
+    y_i|S(x_i), &\theta \sim \pi(y_i|S(x_i), \theta), \text{ for } i \in \{1, \cdots, n\} \\
+    S(x)|\theta &\sim \text{Normal}(\mu(\theta), Q(\theta)^{-1}) \\
+    \theta &\sim \pi(\theta),
+\end{align*} where $y = (y_1, \ldots, y_n)$ is the vector or observed values, $x = (x_1, \ldots, x_n)$ is a Gaussian random field, and $\theta = (\theta_1, \ldots, \theta_k)$, for some $k \in \mathbb{N}$, is a vector of hyperparameters. $\mu(\theta)$ and $Q(\theta)$ represent the mean vector and the precision matrix, respectively.
 
-The observed values $y_i$, $\forall i$, are assumed to have mean $\mu_i=g^{-1}(\eta_i)$, such that the linear prediction $\eta_i$ can be expressed as follows
-\begin{align*}
+The observed values $y_i$, $\forall i$, are assumed to have mean $\mu_i=g^{-1}(\eta_i)$, such that the linear prediction $\eta_i$ can be expressed as follows \begin{align*}
   \eta_i = \alpha + \sum^{n_{\beta}}_{k = 1} \beta_k z_{ki} + \sum_{j = 1}^{n_f}f^{(j)}(u_{ij}) + \varepsilon_i, \forall i,
-\end{align*}
-where $\alpha$ is the intercept, $\{\beta_k\}_k$, are the coefficients of covariates $\{z_{ki}\}_{ki}$, and $\{f^{(j)}\}_j$ define some random effects in terms of covariates $\{u_{ij}\}_{ij}$. Lastly, $\varepsilon_i$ is an error term.
+\end{align*} where $\alpha$ is the intercept, $\{\beta_k\}_k$, are the coefficients of covariates $\{z_{ki}\}_{ki}$, and $\{f^{(j)}\}_j$ define some random effects in terms of covariates $\{u_{ij}\}_{ij}$. Lastly, $\varepsilon_i$ is an error term.
 
 In this formulation, $\{f^{(j)}\}_j$ will be commonly defined as spatio(-temporal) structures---at least for the purposes of this tutorial.
 
@@ -77,7 +75,7 @@ In this formulation, $\{f^{(j)}\}_j$ will be commonly defined as spatio(-tempora
 
 Let us start with a multiple linear regression problem, so that we can get to know the `INLA` notation and how to extract the desired quantities. This example was extracted from [Bayesian Inference with INLA](https://becarioprecario.bitbucket.io/inla-gitbook/ch-INLA.html#multiple-linear-regression) ([Gómez-Rubio, 2021](https://becarioprecario.bitbucket.io/inla-gitbook/index.html)).
 
-We will analyze the `cement` data set from the `MASS` package. `x1`, `x2`, `x3`, and `x4` represent the percentages of the four main chemical ingredients in the setting of 13 cements, and `y` measures the heat evolved. 
+We will analyze the `cement` data set from the `MASS` package. `x1`, `x2`, `x3`, and `x4` represent the percentages of the four main chemical ingredients in the setting of 13 cements, and `y` measures the heat evolved.
 
 ```{r}
 summary(cement)
@@ -90,11 +88,9 @@ Let us add another data point for prediction.
 cement <- rbind(cement, data.frame(x1 = 24, x2 = 24, x3 = 24, x4 = 24, y  = NA))
 ```
 
-And let us fit the following model
-\begin{align*}
+And let us fit the following model \begin{align*}
 y_i = \alpha + \sum_{j = 1}^{4} \beta_j x_{ji} + \varepsilon_i, \forall i,
-\end{align*}
-where $\varepsilon_i\overset{\text{i.i.d.}}{\sim}\text{Normal}(0, 1/\tau)$.
+\end{align*} where $\varepsilon_i\overset{\text{i.i.d.}}{\sim}\text{Normal}(0, 1/\tau)$.
 
 ```{r}
 formula_1 <- y ~ 0 + 1 + x1 + x2 + x3 + x4
@@ -176,7 +172,7 @@ ggplot(post_margin) +
 
 Next, let us fit a generalized linear model (GLM) for a problem in disease mapping. Initially, we will ignore the underlying spatial structure, but we will consider it in the following part. This example was extracted from [Geospatial Health Data: Modeling and Visualization with R-INLA and Shiny](https://www.paulamoraga.com/book-geospatial/sec-arealdataexamplest.html) ([Moraga, 2019](https://www.paulamoraga.com/book-geospatial/index.html)).
 
-We will model the number of cases of lung cancer in Ohio, USA, from 1968 to 1988. The data can be downloaded from [here](.).
+We will model the number of cases of lung cancer in Ohio, USA, from 1968 to 1988. The data can be downloaded from [here](https://github.com/avramaral/INLA_tutorial/raw/main/data/example_2/example_2_data.zip).
 
 After downloading the data, we can do the following
 
@@ -189,17 +185,13 @@ head(d_ohio)
 plot(m_ohio$geometry)
 ```
 
-For this problem, we would like to model the relative risk of cancer in a certain region. To do so, we can compute first the "standardized incidence ratio" (SIR). 
+For this problem, we would like to model the relative risk of cancer in a certain region. To do so, we can compute first the "standardized incidence ratio" (SIR).
 
-Let $Y_i$ denote the number of cases in the location $i$, then
-\begin{align*}
+Let $Y_i$ denote the number of cases in the location $i$, then \begin{align*}
   \text{SIR}_i = \frac{Y_i}{E_i}, \forall i,
-\end{align*}
-where 
-\begin{align*}
+\end{align*} where \begin{align*}
   E_i = \sum_{j = 1}^{m} r_j^{(s)} \cdot n_j^{(i)},
-\end{align*}
-such that $r_j^{(s)}$ represents the rate in stratum $j$ in the standard population, and $n_j^{(i)}$ is the population in stratum $j$ of location $i$.
+\end{align*} such that $r_j^{(s)}$ represents the rate in stratum $j$ in the standard population, and $n_j^{(i)}$ is the population in stratum $j$ of location $i$.
 
 We can compute the SIR as follows (`expected()` was extracted from the `SpatialEpi` package)
 
@@ -289,8 +281,7 @@ However, if there exist locations with small population or expected counts, SIR 
 \begin{align*}
 Y_i &\sim \text{Poisson}(E_i \theta_i), \forall i,\\
 \log(\theta_i) &= \alpha + \sum_{j = 1}^{n_f}f^{(j)}(u_{ij})
-\end{align*}
-where the relative risk $\theta_i$ quantifies whether the location $i$ has higher ($>1$) or lower ($<1$) risk than the average risk in the standard population. We will experiment with different structures (if any) for the random effects.
+\end{align*} where the relative risk $\theta_i$ quantifies whether the location $i$ has higher ($>1$) or lower ($<1$) risk than the average risk in the standard population. We will experiment with different structures (if any) for the random effects.
 
 Aiming to implement the random effects, let us include an index for area and time in our data set.
 
@@ -300,7 +291,7 @@ m_ohio <- m_ohio %>% mutate(id_area = as.numeric(as.factor(county)),
                             id_time = (1 + year - min(year)))
 ```
 
-However, we will with data corresponding to $1988$ only (we will consider a spatio-temporal structure later). 
+However, we will with data corresponding to $1988$ only (we will consider a spatio-temporal structure later).
 
 ```{r}
 data <- m_ohio %>% filter(year == 1988)
@@ -400,7 +391,7 @@ nb2INLA("data/example_2/map.adj", nb)
 g <- inla.read.graph(filename = "data/example_2/map.adj")
 ```
 
-Then we can fit a `iid + besag` model. 
+Then we can fit a `iid + besag` model.
 
 **Remark:** in `INLA`, we can always use `inla.doc()` to view the documentation (e.g., parameterization) of models.
 
@@ -413,14 +404,13 @@ In this case, we are fitting a model such that
 
 \begin{align*}
 \log(\theta_i) = \alpha + u_i + v_i,
-\end{align*}
-such that $u_i$ is a random effect specific to area $i$ to model spatial dependence between the relative risks, and $v_i$ is an unstructured exchangeable component that models uncorrelated noise.
+\end{align*} such that $u_i$ is a random effect specific to area $i$ to model spatial dependence between the relative risks, and $v_i$ is an unstructured exchangeable component that models uncorrelated noise.
 
 ```{r}
 formula_3 <- Y ~ 0 + 1 + f(id_area, model = "iid") + f(id_area_cp, model = "besag", graph = g, scale.model = TRUE)
 ```
 
-`scale.model = TRUE` makes the model to be scaled to have an average variance of 1 ([Sorbye and Rue, 2014](https://www.sciencedirect.com/science/article/pii/S2211675313000407)). 
+`scale.model = TRUE` makes the model to be scaled to have an average variance of 1 ([Sorbye and Rue, 2014](https://www.sciencedirect.com/science/article/pii/S2211675313000407)).
 
 ```{r, eval = F}
 model_2_3 <- inla(formula = formula_3,
@@ -448,16 +438,13 @@ table_model_comparison(models = list(model_2_1 = model_2_1, model_2_2 = model_2_
 
 ## BYM2 model
 
-As an alternative to `iid + besag`, we can fit a "Besag, York, and Mollié" (BYM2) model. In this case, we reparameterize the structured $u = (u_1, \cdots, u_n)$ and unstructured $v = (v_1, \cdots, v_n)$ random effects as follows
-\begin{align*}
+As an alternative to `iid + besag`, we can fit a "Besag, York, and Mollié" (BYM2) model. In this case, we reparameterize the structured $u = (u_1, \cdots, u_n)$ and unstructured $v = (v_1, \cdots, v_n)$ random effects as follows \begin{align*}
 b = u + v = \frac{1}{\sqrt{\tau_b}}(\sqrt{1 - \phi}v^{\star} + \sqrt{\phi}u^{\star}),
-\end{align*}
-where $\tau_b > 0$ is the precision, $0 \leq \phi \leq 1$ is a mixing parameter, $v^{\star} \sim \text{Normal}(0, I_n)$ and $u^{\star}$ is a scaled ICAR model.
+\end{align*} where $\tau_b > 0$ is the precision, $0 \leq \phi \leq 1$ is a mixing parameter, $v^{\star} \sim \text{Normal}(0, I_n)$ and $u^{\star}$ is a scaled ICAR model.
 
 ```{r}
 formula_4 <- Y ~ 0 + 1 + f(id_area, model = "bym2", graph = g)
 ```
-
 
 ```{r, eval = F}
 model_2_4 <- inla(formula = formula_4,
@@ -509,7 +496,6 @@ From above, notice that $\mathbb{P}(\phi < 0.5) = 0.75$ implies that we believe 
 ```{r}
 formula_5 <- Y ~ 0 + 1 + f(id_area, model = "bym2", graph = g, hyper = pc_prior)
 ```
-
 
 ```{r, eval = F}
 model_2_5 <- inla(formula = formula_5,
@@ -593,12 +579,10 @@ data <- m_ohio
 head(data)
 ```
 
-Similar to before, we will model the relative risk as follows
-\begin{align*}
+Similar to before, we will model the relative risk as follows \begin{align*}
 Y_{it} &\sim \text{Poisson}(E_{it} \theta_{it}), \forall i, t, \\
 \log(\theta_{it}) &= \alpha + \sum_{j = 1}^{n_f}f^{(j)}(u_{it,j}).
-\end{align*}
-However, notice that now all quantities depend on the year (or time, $t$). The random effects may depend on both space and time with possible interaction.
+\end{align*} However, notice that now all quantities depend on the year (or time, $t$). The random effects may depend on both space and time with possible interaction.
 
 ## Replicates
 
@@ -652,8 +636,7 @@ Alternatively, we can fit a model with an additive structure for random effects 
 
 \begin{align*}
 \log(\theta_{it}) = \alpha + u_i + \varrho_t,
-\end{align*}
-where $u_i \sim \text{ICAR}$ and, e.g., $\varrho_t \sim \text{AR}(1)$.
+\end{align*} where $u_i \sim \text{ICAR}$ and, e.g., $\varrho_t \sim \text{AR}(1)$.
 
 ```{r}
 formula_2 <- Y ~ 0 + 1 + f(id_time, model = "rw1") + f(id_area, model = "besag", graph = g)
@@ -687,8 +670,8 @@ A more elaborated solution is to consider a spatio-temporal random effect. In pa
 
 In a nutshell, in the grouped random effected,
 
-1. There is a **within** group correlation structure, and
-2. There is a **between** group correlation structure.
+1.  There is a **within** group correlation structure, and
+2.  There is a **between** group correlation structure.
 
 In particular, if $y_{g, i}$ is the $i$-the element in group $g$, then $\text{Cov}(y_{g_1, i_1}, y_{g_2, i_2}) = (\text{cov. between groups } g_1 \text{ and } g_2) \times (\text{cov. between elements } g_1 \text{ and } g_2)$ ([Simpson, 2016](http://faculty.washington.edu/jonno/SISMIDmaterial/8-Groupedmodels.pdf)).
 
@@ -727,8 +710,7 @@ Lastly, we can also implement the Bernardinelli model ([Bernardinelli et al., 19
 
 \begin{align*}
 \log(\theta_{it}) = \alpha + u_i + v_i + (\beta + \delta_i) \times t_j,
-\end{align*}
-where $u_i + v_i$ is a `iid + besag` model, $\beta$ is the global linear trend, and $\delta_i$ denotes a space-time interaction; in particular, this model allows each of the areas to have its own time trend with spatial intercept given by $(\alpha + u_i + v_i)$ and slope given by $(\beta + \delta_i)$ ([Moraga, 2019](https://www.paulamoraga.com/book-geospatial/sec-arealdatatheory.html#spatio-temporal-small-area-disease-risk-estimation)).
+\end{align*} where $u_i + v_i$ is a `iid + besag` model, $\beta$ is the global linear trend, and $\delta_i$ denotes a space-time interaction; in particular, this model allows each of the areas to have its own time trend with spatial intercept given by $(\alpha + u_i + v_i)$ and slope given by $(\beta + \delta_i)$ ([Moraga, 2019](https://www.paulamoraga.com/book-geospatial/sec-arealdatatheory.html#spatio-temporal-small-area-disease-risk-estimation)).
 
 ```{r}
 formula_4 <- Y ~ 0 + 1 + f(id_area, model = "bym", graph = g) + f(id_area_cp, id_time, model = "iid") + id_time
@@ -756,30 +738,25 @@ data_3_4 <- bind_cols(data[, c("county", "year", "geometry")], fitted.values = m
 plot_rr_years(d = data_3_4, tt = "Bernardinelli model")
 ```
 
-# Geostatistical data 
+# Geostatistical data
 
-Throughout this section, we will assume that
-\begin{align*}
+Throughout this section, we will assume that \begin{align*}
     y_i = \mu + \zeta(x_i) + \varepsilon_i, ~\forall i,
-\end{align*}
-where $y = (y_1, \cdots, y_n)$ are the observations at $x = (x_1, \cdots, x_n)$, $\mu$ is the common mean, $\zeta(x)$ is a zero-mean stationary and isotropic Gaussian random field, and $\varepsilon \overset{\text{i.i.d.}}{\sim}\text{Normal}(0, \sigma^2_{\varepsilon})$. In particular, $\zeta(x)$ has a [Matérn structure](https://becarioprecario.bitbucket.io/spde-gitbook/ch-intro.html#sec:matern).
+\end{align*} where $y = (y_1, \cdots, y_n)$ are the observations at $x = (x_1, \cdots, x_n)$, $\mu$ is the common mean, $\zeta(x)$ is a zero-mean stationary and isotropic Gaussian random field, and $\varepsilon \overset{\text{i.i.d.}}{\sim}\text{Normal}(0, \sigma^2_{\varepsilon})$. In particular, $\zeta(x)$ has a [Matérn structure](https://becarioprecario.bitbucket.io/spde-gitbook/ch-intro.html#sec:matern).
 
 Other more sophisticated models are described in [Advanced Spatial Modeling with Stochastic Partial Differential Equations Using R and INLA](https://becarioprecario.bitbucket.io/spde-gitbook/index.html) ([Krainski et al., 2019](https://becarioprecario.bitbucket.io/spde-gitbook/index.html)).
 
-For fitting such a model, we can rely on a stochastic partial differential equation (SPDE) approach. As showed in [Whittle](.) ([1963](.)), a Gaussian random field with Matérn covariance structure can be expressed as a solution of the following SPDE
-\begin{align*}
+For fitting such a model, we can rely on a stochastic partial differential equation (SPDE) approach. As showed in [Whittle](.) ([1963](.)), a Gaussian random field with Matérn covariance structure can be expressed as a solution of the following SPDE \begin{align*}
     (\kappa^2 - \Delta)^{\alpha/2}(\tau S(x)) = \mathcal{W}(x),
-\end{align*} 
-where $\Delta$ is the Laplacian, $\mathcal{W}(s)$ is a Gaussian white-noise random process, $\alpha$ controls the smoothness of the random field, $\tau$ controls the variance, and $\kappa$ is a scale parameter. 
+\end{align*} where $\Delta$ is the Laplacian, $\mathcal{W}(s)$ is a Gaussian white-noise random process, $\alpha$ controls the smoothness of the random field, $\tau$ controls the variance, and $\kappa$ is a scale parameter.
 
-Based on this result, [Lindgren et al.](https://academic.oup.com/jrsssb/article/73/4/423/7034732) ([2011](https://academic.oup.com/jrsssb/article/73/4/423/7034732)) proposed a new procedure for representing a Gaussian random field with Matérn covariance as a Gaussian Markov Random Field (GMRF). They did this by expressing a solution of the SPDE using the Finite Element Method (FEM). 
+Based on this result, [Lindgren et al.](https://academic.oup.com/jrsssb/article/73/4/423/7034732) ([2011](https://academic.oup.com/jrsssb/article/73/4/423/7034732)) proposed a new procedure for representing a Gaussian random field with Matérn covariance as a Gaussian Markov Random Field (GMRF). They did this by expressing a solution of the SPDE using the Finite Element Method (FEM).
 
 The smoothness parameter $\nu$ of the Matérn covariance structure is related to $\alpha$ in the SPDE formulation through $\alpha = \nu + (d / 2)$, where $d$ (typically $d = 2$) is dimension. In `INLA`, $0 \leq \alpha < 2$.
 
 ## PM2.5
 
-We will analyze the particulate matter 2.5 (PM2.5), measured in $\mu \text{g} / \text{m}^3)$ levels in the United States
-(USA) in 2022. The data is the same as the one analyzed in [Amaral et al.](https://link.springer.com/article/10.1007/s13253-023-00571-0) ([2023](https://link.springer.com/article/10.1007/s13253-023-00571-0)). The data can be downloaded from [here](.).
+We will analyze the particulate matter 2.5 (PM2.5), measured in $\mu \text{g} / \text{m}^3)$ levels in the United States (USA) in 2022. The data is the same as the one analyzed in [Amaral et al.](https://link.springer.com/article/10.1007/s13253-023-00571-0) ([2023](https://link.springer.com/article/10.1007/s13253-023-00571-0)). The data can be downloaded from [here](https://github.com/avramaral/INLA_tutorial/raw/main/data/example_4/example_4_data.zip).
 
 ```{r}
 data_USA <- readRDS(file = "data/example_4/data_USA.rds")
@@ -814,7 +791,7 @@ data_USA  <- data_USA %>% rename(lon = X, lat = Y) %>% dplyr::select(mean, sd, l
 head(data_USA)
 ```
 
-And create the mesh with the `inla.mesh.2d()` function. 
+And create the mesh with the `inla.mesh.2d()` function.
 
 ```{r}
 # `max.edge`: the largest allowed triangle edge length. One or two values.
@@ -904,7 +881,7 @@ Similar to before, we must create a projection matrix for the locations where we
 Ap <- inla.spde.make.A(mesh = mesh, loc = coord_pred)
 ```
 
-Lastly, we can organize the data in stacks. 
+Lastly, we can organize the data in stacks.
 
 ```{r}
 # Create stacks
@@ -971,7 +948,7 @@ ggplot(data.frame(inla.smarginal(model_4_1$marginals.hyperpar$`Stdev for s`))) +
 
 ### Prediction
 
-Now, let us retrieve the predicted values. 
+Now, let us retrieve the predicted values.
 
 ```{r}
 # Fitted values and prediction
@@ -987,7 +964,7 @@ pred_uu <- as.data.frame(cbind(coord_pred, model_4_1$summary.fitted.values[idxs_
 pred_mm %>% as_tibble() %>% rename(posterior_mean = V3) %>% head() 
 ```
 
-To plot the posterior mean and percentiles, we will use the function `plot_pred_USA()`. 
+To plot the posterior mean and percentiles, we will use the function `plot_pred_USA()`.
 
 ```{r}
 plot_pred_USA <- function (fitted_values, USA, r, tt = "", should_round = TRUE, ...) {
@@ -1047,24 +1024,22 @@ Recall that
 
 > A Cox process can be seen as a doubly stochastic process. $\xi$ is a Cox process driven by $\Lambda(x)$ if
 >
-> 1. $\{\Lambda(x); x \in \mathcal{D}\}$ is a non-negative valued stochastic process.
-> 
-> 2. Conditional on $\{\Lambda(x) = \lambda(x); \mathbf{x} \in \mathcal{D}\}$, $\xi$ is a Poisson process with intensity function $\lambda(x)$.
+> 1.  $\{\Lambda(x); x \in \mathcal{D}\}$ is a non-negative valued stochastic process.
+>
+> 2.  Conditional on $\{\Lambda(x) = \lambda(x); \mathbf{x} \in \mathcal{D}\}$, $\xi$ is a Poisson process with intensity function $\lambda(x)$.
 
 A particular case of a Cox process, named **log-Gaussian Cox process**, can be constructed by setting $\log(\Lambda(x)) = \mu^{\star}(x) + \zeta(x)$, such that $\mu(x) = \exp(\mu^{\star}(x))$ is possibly interpreted as the mean structure of $\Lambda(x)$, and $\zeta(x)$ is a stationary Gaussian process, such that $\mathbb{E}(\zeta(x)) = -\sigma^2/2$, $\forall x$, and $\text{Cov}(\zeta(x_1), \zeta(x_2)) = \phi(h) = \sigma^2 \rho(h)$, where $h$ is the distance between $x_1$ and $x_2$, and $\sigma^2$ is the variance of $\zeta(x)$.
 
----
+------------------------------------------------------------------------
 
 As we can see [here](https://avramaral.github.io/PP_inference/#fitting-a-lgcp-with-r-inla), a way to fit a LGCP with `INLA` is placing a regular grid, given by cells $\{c_{ij}\}_{ij}$, on top of the spatial domain, such that $\int_{c_{i,j}}\Lambda(x)dx \approx |c_{i,j}|\Lambda(x)$, where $|\cdot|$ denotes the area.
 
-Thus, conditional on $\zeta(x)$, the number of locations in the grid cell $c_{ij}$, $\forall i, j$, are independent and Poisson distributed, such that
-\begin{align*}
+Thus, conditional on $\zeta(x)$, the number of locations in the grid cell $c_{ij}$, $\forall i, j$, are independent and Poisson distributed, such that \begin{align*}
 \mathcal{N}(c_{ij})|\zeta(x) &\sim \text{Poisson}(|c_{ij}| \Lambda(x_{ij})), \forall i, j, \\
 \log(\Lambda(x_{ij})) &= \alpha + \cdots + \zeta(x_{ij})
-\end{align*}
-where $\zeta(x)$ is a Gaussian field (e.g., `matern2d`).
+\end{align*} where $\zeta(x)$ is a Gaussian field (e.g., `matern2d`).
 
-However, [Simpson et al.](https://arxiv.org/abs/1111.0641)([2016](https://arxiv.org/abs/1111.0641)) proposed a method to make inference on LGCP while still considering the exact observation locations---instead of aggregating them over a regular grid and fitting a counting model for each cell. 
+However, [Simpson et al.](https://arxiv.org/abs/1111.0641)([2016](https://arxiv.org/abs/1111.0641)) proposed a method to make inference on LGCP while still considering the exact observation locations---instead of aggregating them over a regular grid and fitting a counting model for each cell.
 
 The main idea consists of an approximation of the likelihood by fitting a Poisson model on an augmented data set made of the observation locations and integration points from the corresponding SPDE mesh (`1` for the observed points and `0` for the dummy variables, such that all have associated "expected values" `e`). The expected number of events in the integration points is defined to be proportional to the area around the node (the areas of the polygons in the dual mesh)
 
@@ -1243,7 +1218,7 @@ summary(model_5_1)
 
 ### Prediction
 
-Now, let us retrieve the predicted values for the intensity function and plot them. 
+Now, let us retrieve the predicted values for the intensity function and plot them.
 
 ```{r}
 idx_pp <- inla.stack.index(stk_full_pp, tag = "pred_pp")$data
@@ -1271,13 +1246,11 @@ pp_pp_uu <- plot_pred_USA(fitted_values = pred_pp_uu, USA = USA, r = r, tt = "97
 
 At this point, we can implement a more sophisticated model for PM2.5. We will assume that the sampling process (modeled in the previous section) is **not** independent of the latent field. In our problem, this is equivalent to stating that the locations where the monitoring stations were placed are somehow influenced by the pollution levels at those sites. This is known as **preferential sampling** ([Diggle et al., 2010](https://doi.org/10.1111/j.1467-9876.2009.00701.x)).
 
-Formally,
-\begin{align*}
+Formally, \begin{align*}
     y_i &= \mu + \zeta(x_i) + \varepsilon_i, ~\forall i, \\
     \xi|\zeta(x) &\sim \text{PPP}(\Lambda(x)) \\  
     \log(\Lambda(x)) &= \alpha + \cdots + \gamma \cdot \zeta(x)
-\end{align*}
-where $\gamma \in \mathbb{R}$ is the "degree of preferentiality", and all other quantities are defined as before.
+\end{align*} where $\gamma \in \mathbb{R}$ is the "degree of preferentiality", and all other quantities are defined as before.
 
 In `INLA` we can fit this model using multiple likelihoods and `copy` of the random effects.
 
@@ -1316,7 +1289,7 @@ spde <- inla.spde2.pcmatern(mesh = mesh,
                             prior.sigma = c(1.0, 0.01)) # P(sigma > 1.0) = 0.01
 ```
 
-Similar to before, let us  construct the projection matrices and format the data into stacks.
+Similar to before, let us construct the projection matrices and format the data into stacks.
 
 ```{r}
 n_vtx <- mesh$n
@@ -1366,7 +1339,7 @@ stk_pp_p <- inla.stack(tag = "pred_pp",
 stk_full_pp_y <- inla.stack(stk_y_e, stk_y_p, stk_pp_e, stk_pp_p)
 ```
 
-Now, let us fit the model. 
+Now, let us fit the model.
 
 To do so, notice that we are "copying" a random effect. The `copy` feature allows for the inclusion of a shared term among several linear predictors. Besides, we are assigning a $\text{Normal}(0, 1)$ prior for $\gamma$.
 
@@ -1451,22 +1424,18 @@ pp_pp_uu <- plot_pred_USA(fitted_values = pred_pp_uu, USA = USA, r = r, tt = "97
 
 Expanding upon the PS model presented in the previous section, it may be desirable to enable the degree of preferentiality to vary across space. This could be especially beneficial when analyzing extensive regions, as the strength of dependence between the latent field and the sampling process is unlikely to remain constant across the spatial domain. This approach was originally proposed by [Amaral et al.](https://doi.org/10.1007/s13253-023-00571-0) ([2023](https://doi.org/10.1007/s13253-023-00571-0)) with code available [here](https://github.com/avramaral/preferential_sampling/).
 
-In particular, 
-\begin{align*} 
-	y_i &= \mu + \zeta(x_i) + \epsilon_i, \forall i \\ 
+In particular, \begin{align*} 
+    y_i &= \mu + \zeta(x_i) + \epsilon_i, \forall i \\ 
   \xi|\zeta(x) &\sim \text{PPP}(\Lambda(x)) \\
   \log(\lambda(x)) &= \alpha + \cdots + \gamma(x) \cdot \zeta(x) \\
   \gamma(x) &= \sum_{k = 1}^{K}\beta_k \phi_k(x), \text{ s.t. } \beta_k \overset{\text{i.i.d.}}{\sim} \text{Normal}(0, \sigma^2_{\beta}), \forall k.
-\end{align*}
-From the above formulation, notice that $\gamma(x)$ is approximated by a combination of unknown coefficients $\{\beta_k\}_k$ and basis functions $\{\phi_k(x)\}_k$. All remaining quantities are defined as before.
+\end{align*} From the above formulation, notice that $\gamma(x)$ is approximated by a combination of unknown coefficients $\{\beta_k\}_k$ and basis functions $\{\phi_k(x)\}_k$. All remaining quantities are defined as before.
 
 The type, number, and location of such basis functions are problem-dependent and [Amaral et al.](https://doi.org/10.1007/s13253-023-00571-0) ([2023](https://doi.org/10.1007/s13253-023-00571-0)) provide guidelines on how to set these aspects of the model.
 
-For this tutorial, we will use "radial basis" built using a compactly
-supported Wendland ([Wendland, 2015](https://doi.org/10.1007/BF02123482)) function defined in space.
+For this tutorial, we will use "radial basis" built using a compactly supported Wendland ([Wendland, 2015](https://doi.org/10.1007/BF02123482)) function defined in space.
 
-> Radial Basis (Wendland): let $h_k = \left(||x - a_k|| / b_k\right)$, such that $b_k \in \mathbb{R}$ and $a_k \in \mathbb{R}^2$, $\forall k$. Under this setting, $a_k$ is also known as a "node point," and, sometimes, $b_k$ can also be referred to as "bandwidth." Then,
-> $$ \phi_k(x) = \begin{cases} (1 - h_k)^6 (35h_k^2 + 18h_k + 3) / 3 & h_k \in [0, 1] \\ 0   & \text{otherwise.} \end{cases} $$
+> Radial Basis (Wendland): let $h_k = \left(||x - a_k|| / b_k\right)$, such that $b_k \in \mathbb{R}$ and $a_k \in \mathbb{R}^2$, $\forall k$. Under this setting, $a_k$ is also known as a "node point," and, sometimes, $b_k$ can also be referred to as "bandwidth." Then, $$ \phi_k(x) = \begin{cases} (1 - h_k)^6 (35h_k^2 + 18h_k + 3) / 3 & h_k \in [0, 1] \\ 0   & \text{otherwise.} \end{cases} $$
 
 ## PM2.5
 

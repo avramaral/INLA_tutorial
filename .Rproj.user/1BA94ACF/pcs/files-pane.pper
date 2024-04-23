@@ -2,8 +2,8 @@
     "sortOrder": [
         {
             "columnIndex": 2,
-            "ascending": true
+            "ascending": false
         }
     ],
-    "path": "~/Desktop/INLA_TUTORIAL/R"
+    "path": "~/Desktop/INLA_TUTORIAL"
 }
