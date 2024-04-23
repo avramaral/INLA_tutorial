@@ -958,7 +958,7 @@ model_2_5 349.0522 623.4366 619.1260</code></pre>
 </section>
 <section id="fitted-values" class="level2">
 <h2 class="anchored" data-anchor-id="fitted-values">Fitted values</h2>
-<p>Although <code>model_2_4</code> and <code>model_2_5</code>, for the purpose of this tutorial, I plot the fitted values based on <code>model_2_3</code> (<code>iid + besag</code>), so that we can plot the estimated unstructured and structured effects separately.</p>
+<p>Although <code>model_2_4</code> and <code>model_2_5</code> are slightly better, for the purpose of this tutorial, we will plot the fitted values based on <code>model_2_3</code> (<code>iid + besag</code>), so that we can see the estimated unstructured and structured effects separately.</p>
 <p>We can retrieve the fitted values by analyzing <code>model_2_3$summary.fitted.values</code>.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb66"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a>fitted_values <span class="ot">&lt;-</span> model_2_3<span class="sc">$</span>summary.fitted.values[, <span class="fu">c</span>(<span class="st">"mean"</span>, <span class="st">"0.025quant"</span>, <span class="st">"0.975quant"</span>)] <span class="sc">%&gt;%</span> </span>

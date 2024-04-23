@@ -523,7 +523,7 @@ table_model_comparison(models = list(model_2_1 = model_2_1, model_2_2 = model_2_
 
 ## Fitted values
 
-Although `model_2_4` and `model_2_5`, for the purpose of this tutorial, I plot the fitted values based on `model_2_3` (`iid + besag`), so that we can plot the estimated unstructured and structured effects separately.
+Although `model_2_4` and `model_2_5` are slightly better, for the purpose of this tutorial, we will plot the fitted values based on `model_2_3` (`iid + besag`), so that we can see the estimated unstructured and structured effects separately.
 
 We can retrieve the fitted values by analyzing `model_2_3$summary.fitted.values`.
 
