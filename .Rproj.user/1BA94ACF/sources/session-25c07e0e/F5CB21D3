@@ -1,0 +1,27 @@
+{
+    "id": "F5CB21D3",
+    "path": "~/Desktop/INLA_TUTORIAL/R/header.R",
+    "project_path": "R/header.R",
+    "type": "r_source",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1713887246706.0,
+    "source_on_save": false,
+    "relative_order": 3,
+    "properties": {
+        "tempName": "Untitled2",
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "175,31",
+        "scrollLine": "161"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1713884748,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1713884748,
+    "read_only": false,
+    "read_only_alternatives": []
+}

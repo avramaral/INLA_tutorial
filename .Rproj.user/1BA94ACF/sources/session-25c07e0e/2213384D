@@ -1,0 +1,27 @@
+{
+    "id": "2213384D",
+    "path": "~/Desktop/INLA_TUTORIAL/R/example_7.R",
+    "project_path": "R/example_7.R",
+    "type": "r_source",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1713884913343.0,
+    "source_on_save": false,
+    "relative_order": 4,
+    "properties": {
+        "tempName": "Untitled1",
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "200,32",
+        "scrollLine": "193"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1713893382,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1713893382139,
+    "read_only": false,
+    "read_only_alternatives": []
+}

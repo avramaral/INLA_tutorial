@@ -1,0 +1,220 @@
+source("R/header.R")
+
+data_USA <- readRDS(file = "data/example_4/data_USA.rds")
+USA <- readRDS(file = "data/example_4/USA_filtered.rds")
+
+mesh <- readRDS(file = "data/example_4/mesh.RDS")
+dual_mesh <- readRDS(file = "data/example_5/dual_mesh.RDS")
+wgt <- readRDS(file = "data/example_5/wgt.RDS")
+
+coord_pred <- readRDS(file = "data/example_4/coord_pred.RDS")
+
+# Priors might differ
+spde <- inla.spde2.pcmatern(mesh = mesh, 
+                            alpha = 2,
+                            prior.range = c(1e3, 0.90), # P(range < 1e3) = 0.90
+                            prior.sigma = c(1.0, 0.01)) # P(sigma > 1.0) = 0.01
+
+#########################
+#########################
+
+# As before...
+
+# Points coordinates
+data_coor <- sf::st_coordinates(data_USA)
+data_USA  <- bind_cols(data_USA, as_tibble(data_coor))
+data_USA  <- data_USA %>% rename(lon = X, lat = Y) %>% dplyr::select(mean, sd, lon, lat, geometry)
+
+
+# Boundary coordinates
+USA_coor <- sf::st_coordinates(USA)
+USA_coor <- matrix(c(USA_coor[, 1], USA_coor[, 2]), ncol = 2)
+colnames(USA_coor) <- c("lon", "lat")
+
+#########################
+#########################
+
+# Basis function
+
+bandwidth <- 2500
+smoothing_kernel <- "Wendland"
+center_pts <- as.matrix(rbind(c(-1600, 5307),
+                              c(  300, 3800),
+                              c( 1114, 4229),
+                              c( -800, 4300),
+                              c(  263, 4987),
+                              c(-2000, 4500)))
+center_pts <- readRDS(file = "data/example_7/center_pts.RDS")
+
+# [,1]     [,2]
+# [1,] -2372.4840 4346.227
+# [2,] -1984.1866 5363.235
+# [3,]  -918.3566 5143.140
+# [4,]  -518.1668 3817.216
+# [5,]   263.5540 4987.330
+# [6,]   677.9622 4096.742
+# [7,]  1494.5412 4720.009
+# [8,]  -198.0935 4291.743
+# [9,] -1710.3787 4513.781
+# [10,]   875.8866 3602.916
+# [11,] -1202.5900 3742.517
+# [12,] -1310.6509 4946.368
+# [13,]  -190.4317 5189.097
+# [14,]   920.5826 4550.813
+# [15,]  -233.7807 4800.288
+
+bfs      <- basis_functions(center_pts = center_pts, loct = data_coor,  mesh = mesh, smoothing_kernel = smoothing_kernel, bandwidth = bandwidth)
+bfs_pred <- basis_functions(center_pts = center_pts, loct = coord_pred, mesh = NULL, smoothing_kernel = smoothing_kernel, bandwidth = bandwidth)
+
+pps <- list()
+for (i in 1:nrow(center_pts)) {
+  pps[[i]] <- plot_pred_USA(fitted_values = as.data.frame(cbind(coord_pred, bfs_pred[[i]])), USA = USA, r = c(0, 1), tt = paste("Wendland ", i, sep = ""))
+}
+
+((pps[[1]] + pps[[2]] + pps[[3]]) / 
+ (pps[[4]] + pps[[5]] + pps[[6]])) + plot_layout(guides = "collect") & theme(legend.position = "right")
+
+# Data and projection matrices
+
+n_vtx <- mesh$n
+n_pts <- nrow(data_USA)
+n_pts_pred <- nrow(coord_pred)
+
+indx <- 1:spde$n.spde
+
+y_pp <- rep(0:1, c(n_vtx, n_pts))
+e_pp <- c(wgt, rep(0, n_pts)) 
+imat <- Diagonal(n_vtx, rep(1, n_vtx))
+ymat <- inla.spde.make.A(mesh, data_coor)
+
+# Estimation
+A_pp_base <- rbind(imat, ymat)
+n_basis_functions <- nrow(center_pts)
+A_pp <- list()
+for (i in 1:n_basis_functions) {
+  A_pp[[i]] <- A_pp_base * bfs[[i]] # Multiply each column by the basis function evaluated at the corresponding locations
+}
+
+# Prediction
+A_pp_p_base <- inla.spde.make.A(mesh = mesh, loc = as.matrix(coord_pred))
+A_pp_p <- list()
+for (i in 1:n_basis_functions) {
+  A_pp_p[[i]] <- A_pp_p_base * bfs_pred[[i]]
+}
+
+# Create stacks
+
+#########################
+# Create a list of effects based on the number of basis function
+#########################
+
+fx_effects <- list(rep(1, n_vtx + n_pts))
+rd_effects <- list()
+for (i in 1:length(A_pp)) { rd_effects <- append(rd_effects, list(indx)) } 
+effects <- append(fx_effects, rd_effects)
+names(effects) <- c("alpha_pp", paste("v_", 1:length(A_pp), sep = ""))
+
+effects_pred <- effects
+effects_pred[[1]] <- rep(1, times = n_pts_pred)
+
+#########################
+#########################
+
+# Stacks for `y` are similar to before; however, stacks for `pp` have different structures for `A` and `effects`
+
+stk_y_e <- inla.stack(tag = "est_y",
+                      data = list(y = cbind(data_USA$mean, NA), e = rep(NA, n_pts)),
+                      A = list(1, ymat),
+                      effects = list(mu = rep(1, n_pts), s = indx)) 
+
+stk_y_p <- inla.stack(tag = "pred_y",
+                      data = list(y = cbind(rep(NA, n_pts_pred), NA), e = rep(NA, n_pts_pred)),
+                      A = list(1, A_pp_p_base),
+                      effects = list(mu = rep(1, n_pts_pred), s = indx)) 
+
+stk_pp_e <- inla.stack(tag = "est_pp",
+                       data = list(y = cbind(NA, y_pp), e = e_pp),
+                       A = append(1, A_pp),
+                       effects = effects)
+
+stk_pp_p <- inla.stack(tag = "pred_pp",
+                       data = list(y = cbind(NA, rep(NA, n_pts_pred)), e = rep(1, n_pts_pred)),
+                       A = append(1, A_pp_p),
+                       effects = effects_pred)
+
+# Full stack
+stk_full_pp_y <- inla.stack(stk_y_e, stk_y_p, stk_pp_e, stk_pp_p)
+
+re_prior <- list(prior = "gaussian", param = c(0, 5))
+
+random_effects <- paste(paste("f(v_",  1:length(A_pp), ", copy = \"s\", fixed = FALSE, hyper = list(beta = re_prior))", sep = ""), collapse = " + ")
+formula_1 <- paste("y ~ 0 + mu + alpha_pp + f(s, model = spde) + ", random_effects, sep = "")
+formula_1 <- eval(parse(text = formula_1))
+formula_1
+
+model_7_1 <- inla(formula = formula_1,
+                  family  = c("gaussian", "poisson"), 
+                  E = inla.stack.data(stk_full_pp_y)$e,
+                  data = inla.stack.data(stk_full_pp_y), 
+                  control.predictor = list(link = rep(c(1, 2), c((n_pts + n_pts_pred), (n_vtx + n_pts + n_pts_pred))),
+                                           compute = TRUE,
+                                           A = inla.stack.A(stk_full_pp_y)))
+
+saveRDS(object = model_7_1, file = "models/model_7_1.RDS")
+
+summary(model_7_1)
+
+# Fitted values and prediction
+
+## Response
+
+idx_y  <- inla.stack.index(stk_full_pp_y, tag = "pred_y" )$data
+
+pred_y_mm  <- as.data.frame(cbind(coord_pred, model_7_1$summary.fitted.values[idx_y,  "mean"]))
+pred_y_ll  <- as.data.frame(cbind(coord_pred, model_7_1$summary.fitted.values[idx_y,  "0.025quant"]))
+pred_y_uu  <- as.data.frame(cbind(coord_pred, model_7_1$summary.fitted.values[idx_y,  "0.975quant"]))
+
+r_mm <- pred_y_mm$V3 %>% range()
+r_ll <- pred_y_ll$V3 %>% range()
+r_uu <- pred_y_uu$V3 %>% range()
+r <- c(min(r_mm[1], r_ll[1], r_uu[1]), max(r_mm[2], r_ll[2], r_uu[2]))
+
+pp_y_mm <- plot_pred_USA(fitted_values = pred_y_mm, USA = USA, r = r, tt = "Mean")
+pp_y_ll <- plot_pred_USA(fitted_values = pred_y_ll, USA = USA, r = r, tt = "2.5th")
+pp_y_uu <- plot_pred_USA(fitted_values = pred_y_uu, USA = USA, r = r, tt = "97.5th")
+
+(pp_y_ll + pp_y_mm + pp_y_uu) + plot_layout(guides = "collect") & theme(legend.position = "right")
+
+## Intensity process
+
+idx_pp <- inla.stack.index(stk_full_pp_y, tag = "pred_pp")$data
+
+pred_pp_mm <- as.data.frame(cbind(coord_pred, model_7_1$summary.fitted.values[idx_pp, "mean"]))
+pred_pp_ll <- as.data.frame(cbind(coord_pred, model_7_1$summary.fitted.values[idx_pp, "0.025quant"]))
+pred_pp_uu <- as.data.frame(cbind(coord_pred, model_7_1$summary.fitted.values[idx_pp, "0.975quant"]))
+
+# Expected number of observations
+sum(pred_pp_mm$V3 * (25 ** 2))
+
+r_mm <- pred_pp_mm$V3 %>% range()
+r_ll <- pred_pp_ll$V3 %>% range()
+r_uu <- pred_pp_uu$V3 %>% range()
+r <- c(min(r_mm[1], r_ll[1], r_uu[1]), max(r_mm[2], r_ll[2], r_uu[2]))
+
+pp_pp_mm <- plot_pred_USA(fitted_values = pred_pp_mm, USA = USA, r = r, tt = "Mean",   should_round = FALSE)
+pp_pp_ll <- plot_pred_USA(fitted_values = pred_pp_ll, USA = USA, r = r, tt = "2.5th",  should_round = FALSE)
+pp_pp_uu <- plot_pred_USA(fitted_values = pred_pp_uu, USA = USA, r = r, tt = "97.5th", should_round = FALSE)
+
+# (pp_pp_ll + pp_pp_mm + pp_pp_uu) + plot_layout(guides = "collect") & theme(legend.position = "right")
+
+## Degree of preferentiality
+
+# TBD
+
+
+
+
+
+
+
+

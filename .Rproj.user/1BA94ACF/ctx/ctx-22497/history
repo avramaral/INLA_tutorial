@@ -1,0 +1,512 @@
+coordinates(pred_mm) <- ~ x + y
+gridded(pred_mm) <- TRUE
+pred_mm <- raster(pred_mm)
+crs(pred_mm) <- "+init=epsg:6345 +units=km +no_defs"
+pred_mm
+USA
+tt <- "Posterior Mean"
+tt <- "Posterior Mean"
+pp <- ggplot() +
+pp <- ggplot() +
+geom_tile(data = pred_mm, mapping = aes(x = x, y = y, fill = V3)) +
+geom_sf(data = USA, color = "black", fill = NA, lwd = 0.5) +
+scale_fill_gradientn(name = "PM2.5", colors = colors = rainbow(9, start = 0.1, end = 0.9)) +
+pp <- ggplot() +
+geom_tile(data = pred_mm, mapping = aes(x = x, y = y, fill = V3)) +
+geom_sf(data = USA, color = "black", fill = NA, lwd = 0.5) +
+scale_fill_gradientn(name = "PM2.5", colors = colors = rainbow(9, start = 0.1, end = 0.9)) +
+pp <- ggplot() +
+geom_tile(data = pred_mm, mapping = aes(x = x, y = y, fill = V3)) +
+geom_sf(data = USA, color = "black", fill = NA, lwd = 0.5) +
+scale_fill_gradientn(name = "PM2.5", colors = rainbow(9, start = 0.1, end = 0.9)) +
+labs(x = "", y = "", title = tt) +
+custom_theme +
+theme(axis.text.x = element_blank(),
+axis.text.y = element_blank(),
+axis.ticks  = element_blank())
+pred_mm
+pp <- ggplot() +
+geom_tile(data = pred_mm, mapping = aes(x = x, y = y, fill = V3)) +
+geom_sf(data = USA, color = "black", fill = NA, lwd = 0.5) +
+scale_fill_gradientn(name = "PM2.5", colors = rainbow(9, start = 0.1, end = 0.9)) +
+labs(x = "", y = "", title = tt) +
+custom_theme +
+theme(axis.text.x = element_blank(),
+axis.text.y = element_blank(),
+axis.ticks  = element_blank())
+pred_mm
+ggplot() +
+geom_tile(data = pred_mm, mapping = aes(x = x, y = y, fill = V3))
+ggplot() +
+geom_tile(data = pred_mm, mapping = aes(x = x, y = y))
+plotpred_mm
+pred_mm %>% plot
+pred_mm
+ggplot() +
+geom_tile(data = pred_mm)
+pred_mm
+pred_mm %>% clas
+pred_mm %>% class
+pp <- ggplot(pred_mm) +
+geom_tile(mapping = aes(x = x, y = y, fill = V3)) +
+geom_sf(data = USA, color = "black", fill = NA, lwd = 0.5) +
+scale_fill_gradientn(name = "PM2.5", colors = rainbow(9, start = 0.1, end = 0.9)) +
+labs(x = "", y = "", title = tt) +
+custom_theme +
+theme(axis.text.x = element_blank(),
+axis.text.y = element_blank(),
+axis.ticks  = element_blank())
+ggplot(pred_mm) +
+geom_raster(data = pred_mm, mapping = aes(x = x, y = y, fill = V3))
+ggplot() +
+geom_raster(data = pred_mm, mapping = aes(x = x, y = y, fill = V3))
+pred_mm
+as.data.frame(pred_mm)
+pp <- ggplot() +
+geom_tile(data = as.data.frame(pred_mm), mapping = aes(x = x, y = y, fill = V3)) +
+geom_sf(data = USA, color = "black", fill = NA, lwd = 0.5) +
+scale_fill_gradientn(name = "PM2.5", colors = rainbow(9, start = 0.1, end = 0.9)) +
+labs(x = "", y = "", title = tt) +
+custom_theme +
+theme(axis.text.x = element_blank(),
+axis.text.y = element_blank(),
+axis.ticks  = element_blank())
+pp
+pred_mmas.data.frame(pred_mm)
+as.data.frame(pred_mm)
+pred_mm <- as.data.frame(cbind(coord_pred, model_4_1$summary.fitted.values[idxs_pred, "mean"]))
+pred_ll <- as.data.frame(cbind(coord_pred, model_4_1$summary.fitted.values[idxs_pred, "0.025quant"]))
+pred_ul <- as.data.frame(cbind(coord_pred, model_4_1$summary.fitted.values[idxs_pred, "0.975quant"]))
+tt <- "Posterior Mean"
+coordinates(pred_mm) <- ~ x + y
+pred_mm
+gridded(pred_mm) <- TRUE
+pred_mm <- raster(pred_mm)
+colnames(pred_mm) <- c("x", "y", "pred")
+coordinates(pred_mm) <- ~ x + y
+gridded(pred_mm) <- TRUE
+pred_mm <- as.data.frame(cbind(coord_pred, model_4_1$summary.fitted.values[idxs_pred, "mean"]))
+pred_ll <- as.data.frame(cbind(coord_pred, model_4_1$summary.fitted.values[idxs_pred, "0.025quant"]))
+pred_ul <- as.data.frame(cbind(coord_pred, model_4_1$summary.fitted.values[idxs_pred, "0.975quant"]))
+tt <- "Posterior Mean"
+colnames(pred_mm) <- c("x", "y", "pred")
+coordinates(pred_mm) <- ~ x + y
+gridded(pred_mm) <- TRUE
+pred_mm <- raster(pred_mm)
+crs(pred_mm) <- "+init=epsg:6345 +units=km +no_defs"
+pp <- ggplot() +
+geom_tile(data = as.data.frame(pred_mm), mapping = aes(x = x, y = y, fill = V3)) +
+geom_sf(data = USA, color = "black", fill = NA, lwd = 0.5) +
+scale_fill_gradientn(name = "PM2.5", colors = rainbow(9, start = 0.1, end = 0.9)) +
+labs(x = "", y = "", title = tt) +
+custom_theme +
+theme(axis.text.x = element_blank(),
+axis.text.y = element_blank(),
+axis.ticks  = element_blank())
+pp <- ggplot() +
+geom_tile(data = pred_mm, mapping = aes(x = x, y = y, fill = pred)) +
+geom_sf(data = USA, color = "black", fill = NA, lwd = 0.5) +
+scale_fill_gradientn(name = "PM2.5", colors = rainbow(9, start = 0.1, end = 0.9)) +
+labs(x = "", y = "", title = tt) +
+custom_theme +
+theme(axis.text.x = element_blank(),
+axis.text.y = element_blank(),
+axis.ticks  = element_blank())
+pp
+pred_mm    <- as(pred_mm, "SpatialPixelsDataFrame")
+pred_mm_df <- as.data.frame(pred_mm)
+pred_mm <- as.data.frame(cbind(coord_pred, model_4_1$summary.fitted.values[idxs_pred, "mean"]))
+pred_ll <- as.data.frame(cbind(coord_pred, model_4_1$summary.fitted.values[idxs_pred, "0.025quant"]))
+pred_ul <- as.data.frame(cbind(coord_pred, model_4_1$summary.fitted.values[idxs_pred, "0.975quant"]))
+tt <- "Posterior Mean"
+colnames(pred_mm) <- c("x", "y", "pred")
+coordinates(pred_mm) <- ~ x + y
+gridded(pred_mm) <- TRUE
+pred_mm <- raster(pred_mm)
+crs(pred_mm) <- "+init=epsg:6345 +units=km +no_defs"
+pred_mm    <- as(pred_mm, "SpatialPixelsDataFrame")
+pred_mm_df <- as.data.frame(pred_mm)
+pred_mm_df
+# Fitted values and prediction
+idxs_pred <- inla.stack.index(stk_full, tag = "pred")$data
+pred_mm <- as.data.frame(cbind(coord_pred, model_4_1$summary.fitted.values[idxs_pred, "mean"]))
+pred_ll <- as.data.frame(cbind(coord_pred, model_4_1$summary.fitted.values[idxs_pred, "0.025quant"]))
+pred_ul <- as.data.frame(cbind(coord_pred, model_4_1$summary.fitted.values[idxs_pred, "0.975quant"]))
+tt <- "Posterior Mean"
+coordinates(pred_mm) <- ~ x + y
+gridded(pred_mm) <- TRUE
+pred_mm <- raster(pred_mm)
+crs(pred_mm) <- "+init=epsg:6345 +units=km +no_defs"
+pred_mm    <- as(pred_mm, "SpatialPixelsDataFrame")
+pred_mm_df <- as.data.frame(pred_mm)
+tt <- "Posterior Mean"
+coordinates(pred_mm) <- ~ x + y
+gridded(pred_mm) <- TRUE
+pred_mm <- raster(pred_mm)
+crs(pred_mm) <- "+init=epsg:6345 +units=km +no_defs"
+pred_mm <- as.data.frame(cbind(coord_pred, model_4_1$summary.fitted.values[idxs_pred, "mean"]))
+pred_ll <- as.data.frame(cbind(coord_pred, model_4_1$summary.fitted.values[idxs_pred, "0.025quant"]))
+pred_ul <- as.data.frame(cbind(coord_pred, model_4_1$summary.fitted.values[idxs_pred, "0.975quant"]))
+tt <- "Posterior Mean"
+coordinates(pred_mm) <- ~ x + y
+gridded(pred_mm) <- TRUE
+pred_mm <- raster(pred_mm)
+crs(pred_mm) <- "+init=epsg:6345 +units=km +no_defs"
+pred_mm    <- as(pred_mm, "SpatialPixelsDataFrame")
+pred_mm_df <- as.data.frame(pred_mm)
+colnames(pred_mm_df) <- c("estimated", "x", "y")
+pp <- ggplot() +
+geom_tile(data = pred_mm_df, mapping = aes(x = x, y = y, fill = pred)) +
+geom_sf(data = USA, color = "black", fill = NA, lwd = 0.5) +
+scale_fill_gradientn(name = "PM2.5", colors = rainbow(9, start = 0.1, end = 0.9)) +
+labs(x = "", y = "", title = tt) +
+custom_theme +
+theme(axis.text.x = element_blank(),
+axis.text.y = element_blank(),
+axis.ticks  = element_blank())
+pp
+pred_mm_df
+pred_mm <- as.data.frame(cbind(coord_pred, model_4_1$summary.fitted.values[idxs_pred, "mean"]))
+pred_ll <- as.data.frame(cbind(coord_pred, model_4_1$summary.fitted.values[idxs_pred, "0.025quant"]))
+pred_ul <- as.data.frame(cbind(coord_pred, model_4_1$summary.fitted.values[idxs_pred, "0.975quant"]))
+tt <- "Posterior Mean"
+coordinates(pred_mm) <- ~ x + y
+gridded(pred_mm) <- TRUE
+pred_mm <- raster(pred_mm)
+crs(pred_mm) <- "+init=epsg:6345 +units=km +no_defs"
+pred_mm    <- as(pred_mm, "SpatialPixelsDataFrame")
+pred_mm_df <- as.data.frame(pred_mm)
+colnames(pred_mm_df) <- c("pred", "x", "y")
+pp <- ggplot() +
+geom_tile(data = pred_mm_df, mapping = aes(x = x, y = y, fill = pred)) +
+geom_sf(data = USA, color = "black", fill = NA, lwd = 0.5) +
+scale_fill_gradientn(name = "PM2.5", colors = rainbow(9, start = 0.1, end = 0.9)) +
+labs(x = "", y = "", title = tt) +
+custom_theme +
+theme(axis.text.x = element_blank(),
+axis.text.y = element_blank(),
+axis.ticks  = element_blank())
+pp
+pred_mm
+pred_mm$V3
+pred_mm$V3 %>% range()
+pred_mm$V3 %>% range()
+pred_ll$V3 %>% range()
+pred_uu$V3 %>% range()
+pred_mm <- as.data.frame(cbind(coord_pred, model_4_1$summary.fitted.values[idxs_pred, "mean"]))
+pred_ll <- as.data.frame(cbind(coord_pred, model_4_1$summary.fitted.values[idxs_pred, "0.025quant"]))
+pred_uu <- as.data.frame(cbind(coord_pred, model_4_1$summary.fitted.values[idxs_pred, "0.975quant"]))
+pred_mm$V3 %>% range()
+pred_ll$V3 %>% range()
+pred_uu$V3 %>% range()
+pred_mm <- as.data.frame(cbind(coord_pred, model_4_1$summary.fitted.values[idxs_pred, "mean"]))
+pred_ll <- as.data.frame(cbind(coord_pred, model_4_1$summary.fitted.values[idxs_pred, "0.025quant"]))
+pred_uu <- as.data.frame(cbind(coord_pred, model_4_1$summary.fitted.values[idxs_pred, "0.975quant"]))
+r_mm <- pred_mm$V3 %>% range()
+r_ll <- pred_ll$V3 %>% range()
+r_uu <- pred_uu$V3 %>% range()
+r
+r_mm <- pred_mm$V3 %>% range()
+r_ll <- pred_ll$V3 %>% range()
+r_uu <- pred_uu$V3 %>% range()
+r <- c(min(r_mm[1], r_ll[1], r_uu[1]), max(r_mm[2], r_ll[2], r_uu[2]))
+r
+limits
+labs <- seq(round(min(c(fitted_latent_0025_df$estimated, fitted_latent_0975_df$estimated)) - 0.01, 2), round(max(c(fitted_latent_0025_df$estimated, fitted_latent_0975_df$estimated)) + 0.01, 2), length.out = 6)
+labs <- seq(floor(r[1]), ceiling(r[2]), length.out = 6)
+labs
+breaks
+breaks <- seq(floor(r[1]), ceiling(r[2]), length.out = 6)
+pp <- ggplot() +
+geom_tile(data = pred_mm_df, mapping = aes(x = x, y = y, fill = pred)) +
+geom_sf(data = USA, color = "black", fill = NA, lwd = 0.5) +
+scale_fill_gradientn(name = "PM2.5", colors = rainbow(9, start = 0.1, end = 0.9), breaks = breaks, limits = c(breaks[1], tail(breaks, 1))) +
+labs(x = "", y = "", title = tt) +
+custom_theme +
+theme(axis.text.x = element_blank(),
+axis.text.y = element_blank(),
+axis.ticks  = element_blank())
+pp
+plot_pred_USA <- function (fitted_values, USA, r, tt = "", ...) {
+coordinates(fitted_values) <- ~ x + y
+gridded(fitted_values) <- TRUE
+fitted_values <- raster(fitted_values)
+crs(fitted_values) <- "+init=epsg:6345 +units=km +no_defs"
+fitted_values    <- as(fitted_values, "SpatialPixelsDataFrame")
+fitted_values_df <- as.data.frame(fitted_values)
+colnames(fitted_values_df) <- c("pred", "x", "y")
+breaks <- seq(floor(r[1]), ceiling(r[2]), length.out = 1)
+pp <- ggplot() +
+geom_tile(data = fitted_values_df, mapping = aes(x = x, y = y, fill = pred)) +
+geom_sf(data = USA, color = "black", fill = NA, lwd = 0.5) +
+scale_fill_gradientn(name = "PM2.5", colors = rainbow(9, start = 0.1, end = 0.9), breaks = breaks, limits = c(breaks[1], tail(breaks, 1))) +
+labs(x = "", y = "", title = tt) +
+custom_theme +
+theme(axis.text.x = element_blank(),
+axis.text.y = element_blank(),
+axis.ticks  = element_blank())
+pp
+}
+plot_pred_USA(fitted_values = r_mm, USA = USA, r = r, tt = "Posterior Mean")
+plot_pred_USA <- function (fitted_values, USA, r, tt = "", ...) {
+coordinates(fitted_values) <- ~ x + y
+gridded(fitted_values) <- TRUE
+fitted_values <- raster(fitted_values)
+crs(fitted_values) <- "+init=epsg:6345 +units=km +no_defs"
+fitted_values    <- as(fitted_values, "SpatialPixelsDataFrame")
+fitted_values_df <- as.data.frame(fitted_values)
+colnames(fitted_values_df) <- c("pred", "x", "y")
+breaks <- seq(floor(r[1]), ceiling(r[2]), length.out = 1)
+pp <- ggplot() +
+geom_tile(data = fitted_values_df, mapping = aes(x = x, y = y, fill = pred)) +
+geom_sf(data = USA, color = "black", fill = NA, lwd = 0.5) +
+scale_fill_gradientn(name = "PM2.5", colors = rainbow(9, start = 0.1, end = 0.9), breaks = breaks, limits = c(breaks[1], tail(breaks, 1))) +
+labs(x = "", y = "", title = tt) +
+custom_theme +
+theme(axis.text.x = element_blank(),
+axis.text.y = element_blank(),
+axis.ticks  = element_blank())
+pp
+}
+plot_pred_USA(fitted_values = r_mm, USA = USA, r = r, tt = "Posterior Mean")
+# Fitted values and prediction
+idxs_pred <- inla.stack.index(stk_full, tag = "pred")$data
+pred_mm <- as.data.frame(cbind(coord_pred, model_4_1$summary.fitted.values[idxs_pred, "mean"]))
+pred_ll <- as.data.frame(cbind(coord_pred, model_4_1$summary.fitted.values[idxs_pred, "0.025quant"]))
+pred_uu <- as.data.frame(cbind(coord_pred, model_4_1$summary.fitted.values[idxs_pred, "0.975quant"]))
+r_mm <- pred_mm$V3 %>% range()
+r_ll <- pred_ll$V3 %>% range()
+r_uu <- pred_uu$V3 %>% range()
+r <- c(min(r_mm[1], r_ll[1], r_uu[1]), max(r_mm[2], r_ll[2], r_uu[2]))
+tt <- "Posterior Mean"
+plot_pred_USA(fitted_values = r_mm, USA = USA, r = r, tt = "Posterior Mean")
+fitted_values = r_mm
+coordinates(fitted_values) <- ~ x + y
+fitted_values
+pred_mm <- as.data.frame(cbind(coord_pred, model_4_1$summary.fitted.values[idxs_pred, "mean"]))
+pred_mm
+plot_pred_USA(fitted_values = pred_mm, USA = USA, r = r, tt = "Posterior Mean")
+pred_mm <- as.data.frame(cbind(coord_pred, model_4_1$summary.fitted.values[idxs_pred, "mean"]))
+pred_ll <- as.data.frame(cbind(coord_pred, model_4_1$summary.fitted.values[idxs_pred, "0.025quant"]))
+pred_uu <- as.data.frame(cbind(coord_pred, model_4_1$summary.fitted.values[idxs_pred, "0.975quant"]))
+r_mm <- pred_mm$V3 %>% range()
+r_ll <- pred_ll$V3 %>% range()
+r_uu <- pred_uu$V3 %>% range()
+r <- c(min(r_mm[1], r_ll[1], r_uu[1]), max(r_mm[2], r_ll[2], r_uu[2]))
+tt <- "Posterior Mean"
+plot_pred_USA(fitted_values = pred_mm, USA = USA, r = r, tt = "Posterior Mean")
+r
+pred_mm
+plot_pred_USA <- function (fitted_values, USA, r, tt = "", ...) {
+coordinates(fitted_values) <- ~ x + y
+gridded(fitted_values) <- TRUE
+fitted_values <- raster(fitted_values)
+crs(fitted_values) <- "+init=epsg:6345 +units=km +no_defs"
+fitted_values    <- as(fitted_values, "SpatialPixelsDataFrame")
+fitted_values_df <- as.data.frame(fitted_values)
+colnames(fitted_values_df) <- c("pred", "x", "y")
+breaks <- seq(floor(r[1]), ceiling(r[2]), length.out = 1)
+print(breaks)
+pp <- ggplot() +
+geom_tile(data = fitted_values_df, mapping = aes(x = x, y = y, fill = pred)) +
+geom_sf(data = USA, color = "black", fill = NA, lwd = 0.5) +
+scale_fill_gradientn(name = "PM2.5", colors = rainbow(9, start = 0.1, end = 0.9), breaks = breaks, limits = c(breaks[1], tail(breaks, 1))) +
+labs(x = "", y = "", title = tt) +
+custom_theme +
+theme(axis.text.x = element_blank(),
+axis.text.y = element_blank(),
+axis.ticks  = element_blank())
+pp
+}
+plot_pred_USA(fitted_values = pred_mm, USA = USA, r = r, tt = "Posterior Mean")
+r
+plot_pred_USA <- function (fitted_values, USA, r, tt = "", ...) {
+coordinates(fitted_values) <- ~ x + y
+gridded(fitted_values) <- TRUE
+fitted_values <- raster(fitted_values)
+crs(fitted_values) <- "+init=epsg:6345 +units=km +no_defs"
+fitted_values    <- as(fitted_values, "SpatialPixelsDataFrame")
+fitted_values_df <- as.data.frame(fitted_values)
+colnames(fitted_values_df) <- c("pred", "x", "y")
+print(r)
+breaks <- seq(floor(r[1]), ceiling(r[2]), length.out = 1)
+print(breaks)
+pp <- ggplot() +
+geom_tile(data = fitted_values_df, mapping = aes(x = x, y = y, fill = pred)) +
+geom_sf(data = USA, color = "black", fill = NA, lwd = 0.5) +
+scale_fill_gradientn(name = "PM2.5", colors = rainbow(9, start = 0.1, end = 0.9), breaks = breaks, limits = c(breaks[1], tail(breaks, 1))) +
+labs(x = "", y = "", title = tt) +
+custom_theme +
+theme(axis.text.x = element_blank(),
+axis.text.y = element_blank(),
+axis.ticks  = element_blank())
+pp
+}
+plot_pred_USA(fitted_values = pred_mm, USA = USA, r = r, tt = "Posterior Mean")
+plot_pred_USA <- function (fitted_values, USA, r, tt = "", ...) {
+coordinates(fitted_values) <- ~ x + y
+gridded(fitted_values) <- TRUE
+fitted_values <- raster(fitted_values)
+crs(fitted_values) <- "+init=epsg:6345 +units=km +no_defs"
+fitted_values    <- as(fitted_values, "SpatialPixelsDataFrame")
+fitted_values_df <- as.data.frame(fitted_values)
+colnames(fitted_values_df) <- c("pred", "x", "y")
+breaks <- seq(floor(r[1]), ceiling(r[2]), length.out = 5)
+pp <- ggplot() +
+geom_tile(data = fitted_values_df, mapping = aes(x = x, y = y, fill = pred)) +
+geom_sf(data = USA, color = "black", fill = NA, lwd = 0.5) +
+scale_fill_gradientn(name = "PM2.5", colors = rainbow(9, start = 0.1, end = 0.9), breaks = breaks, limits = c(breaks[1], tail(breaks, 1))) +
+labs(x = "", y = "", title = tt) +
+custom_theme +
+theme(axis.text.x = element_blank(),
+axis.text.y = element_blank(),
+axis.ticks  = element_blank())
+pp
+}
+plot_pred_USA(fitted_values = pred_mm, USA = USA, r = r, tt = "Posterior Mean")
+library("patchwork")
+pp_ll / pp_mm / pp_uu
+pp_mm <- plot_pred_USA(fitted_values = pred_mm, USA = USA, r = r, tt = "Posterior Mean")
+pp_ll <- plot_pred_USA(fitted_values = pred_mm, USA = USA, r = r, tt = "Posterior  2.5th percentile")
+pp_uu <- plot_pred_USA(fitted_values = pred_mm, USA = USA, r = r, tt = "Posterior 97.5th percentile")
+pp_ll / pp_mm / pp_uu
+pp_mm <- plot_pred_USA(fitted_values = pred_ll, USA = USA, r = r, tt = "Posterior Mean")
+pp_mm <- plot_pred_USA(fitted_values = pred_mm, USA = USA, r = r, tt = "Posterior Mean")
+pp_ll <- plot_pred_USA(fitted_values = pred_ll, USA = USA, r = r, tt = "Posterior  2.5th percentile")
+pp_uu <- plot_pred_USA(fitted_values = pred_uu, USA = USA, r = r, tt = "Posterior 97.5th percentile")
+(pp_ll / pp_mm / pp_uu)
+?inla.spde.make.index
+spde$n.spde
+dim(A)
+location
+boundaries
+loc
+pred_mm
+pred_mm %>% as_tibble() %>% rename(posterior_mean = V3) %>% head()
+(pp_ll + pp_mm + pp_uu) & theme(legend.position = "right")
+(pp_ll + pp_mm + pp_uu) + plot_layout(guides = "collect") & theme(legend.position = "right")
+data_USA <- readRDS(file = "data/example_4/data_USA.rds")
+USA <- readRDS(file = "data/example_4/USA_filtered.rds")
+data_USA
+USA
+ggplot() +
+geom_sf(data = USA, fill = "white") +
+geom_sf(data = data_USA, color = "black", size = 3, shape = 1) +
+labs(x = "", y = "", title = "") +
+custom_theme +
+theme(axis.text.x = element_blank(),
+axis.text.y = element_blank(),
+axis.ticks  = element_blank())
+ggplot() +
+geom_sf(data = USA, fill = "white") +
+geom_sf(data = data_USA, color = "black", size = 3, shape = 2) +
+labs(x = "", y = "", title = "") +
+custom_theme +
+theme(axis.text.x = element_blank(),
+axis.text.y = element_blank(),
+axis.ticks  = element_blank())
+ggplot() +
+geom_sf(data = USA, fill = "white") +
+geom_sf(data = data_USA, color = "black", size = 3, shape = 3) +
+labs(x = "", y = "", title = "") +
+custom_theme +
+theme(axis.text.x = element_blank(),
+axis.text.y = element_blank(),
+axis.ticks  = element_blank())
+saveRDS(object = mesh, file = "data/example_4/mesh.RDS")
+plot(mesh)
+library("INLA")
+library("tidyverse")
+library("sf")
+custom_theme <-  theme_bw() + theme(legend.position = "right",
+text = element_text(size = 14, family = "LM Roman 10"),
+plot.title = element_text(size = 16),
+legend.title = element_text(size = 12))
+##################################################
+##################################################
+data_USA <- readRDS(file = "data/example_4/data_USA.rds")
+USA <- readRDS(file = "data/example_4/USA_filtered.rds")
+ggplot() +
+geom_sf(data = USA, fill = "white") +
+geom_sf(data = data_USA, color = "black", size = 3, shape = 3) +
+labs(x = "", y = "", title = "") +
+custom_theme +
+theme(axis.text.x = element_blank(),
+axis.text.y = element_blank(),
+axis.ticks  = element_blank())
+mesh <- readRDS(file = "data/example_4/mesh.RDS")
+plot(mesh)
+?inla.spde2.pcmatern
+library("INLA")
+library("tidyverse")
+library("sf")
+library("raster")
+library("patchwork")
+custom_theme <-  theme_bw() + theme(legend.position = "right",
+text = element_text(size = 14, family = "LM Roman 10"),
+plot.title = element_text(size = 16),
+legend.title = element_text(size = 12))
+create_prediction_grid <- function (loc, resolution = 25, ...) {
+resolution <- 25
+pts_bdy <- loc$geometry[[1]][[1]]
+pts_bdy_x <- range(pts_bdy[, 1])
+pts_bdy_y <- range(pts_bdy[, 2])
+coord_pred <- expand.grid(x = seq(pts_bdy_x[1], pts_bdy_x[2], by = resolution), y = seq(pts_bdy_y[1], pts_bdy_y[2], by = resolution))
+coordinates(coord_pred) <- ~ x + y
+xx <- as(st_as_sf(coord_pred), "sf");   st_crs(xx) <- st_crs(loc$geometry)
+yy <- as(st_as_sf(loc$geometry), "sf"); st_crs(yy) <- st_crs(loc$geometry)
+# Compute intersection between grid and `loc` borders
+pppts <- st_intersection(x = xx, y = yy)
+coord_pred <- matrix(data = NA, nrow = length(pppts$geometry), ncol = 2)
+colnames(coord_pred) <- c("x", "y")
+for (p in 1:length(pppts$geometry)) { coord_pred[p, ] <- sf::st_coordinates(pppts$geometry[[p]]) }
+coord_pred <- data.frame(x = coord_pred[, 1], y = coord_pred[, 2])
+as.matrix(coord_pred)
+}
+plot_pred_USA <- function (fitted_values, USA, r, tt = "", ...) {
+coordinates(fitted_values) <- ~ x + y
+gridded(fitted_values) <- TRUE
+fitted_values <- raster(fitted_values)
+crs(fitted_values) <- "+init=epsg:6345 +units=km +no_defs"
+fitted_values    <- as(fitted_values, "SpatialPixelsDataFrame")
+fitted_values_df <- as.data.frame(fitted_values)
+colnames(fitted_values_df) <- c("pred", "x", "y")
+breaks <- seq(floor(r[1]), ceiling(r[2]), length.out = 5)
+pp <- ggplot() +
+geom_tile(data = fitted_values_df, mapping = aes(x = x, y = y, fill = pred)) +
+geom_sf(data = USA, color = "black", fill = NA, lwd = 0.5) +
+scale_fill_gradientn(name = "PM2.5", colors = rainbow(9, start = 0.1, end = 0.9), breaks = breaks, limits = c(breaks[1], tail(breaks, 1))) +
+labs(x = "", y = "", title = tt) +
+custom_theme +
+theme(axis.text.x = element_blank(),
+axis.text.y = element_blank(),
+axis.ticks  = element_blank())
+pp
+}
+data_USA <- readRDS(file = "data/example_4/data_USA.rds")
+USA <- readRDS(file = "data/example_4/USA_filtered.rds")
+# Boundary coordinates
+USA_coor <- sf::st_coordinates(USA)
+USA_coor <- matrix(c(USA_coor[, 1], USA_coor[, 2]), ncol = 2)
+colnames(USA_coor) <- c("lon", "lat")
+# Points coordinates
+data_coor <- sf::st_coordinates(data_USA)
+data_USA  <- bind_cols(data_USA, as_tibble(data_coor))
+data_USA  <- data_USA %>% rename(lon = X, lat = Y) %>% dplyr::select(mean, sd, lon, lat, geometry)
+mesh <- inla.mesh.2d(loc.domain = USA_coor, max.edge = c(300, 3000), offset = c(300, 1500))
+saveRDS(object = mesh, file = "data/example_4/mesh.RDS")
+mesh$n # Number of nodes
+# Plot `mesh`
+{
+plot(mesh)
+plot(USA$geometry, lwd = 2, border = "red", add = TRUE)
+points(data_USA$lon, data_USA$lat, pch = 1, col = "green")
+}
+# Flexible parameterization (with a default one)
+# spde <- inla.spde2.matern(mesh = mesh, alpha = 2)
+# Parameterization for PC priors
+spde <- inla.spde2.pcmatern(mesh = mesh,
+alpha = 2,
+prior.range = c(1e3, 0.90), # P(range < 1e3) = 0.90
+prior.sigma = c(1.0, 0.01)) # P(sigma > 1.0) = 0.01
+saveRDS(object = spde, file = "data/example_4/spde.RDS")

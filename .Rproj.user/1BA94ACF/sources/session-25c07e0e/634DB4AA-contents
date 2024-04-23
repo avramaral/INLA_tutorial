@@ -1,0 +1,13 @@
+library("RandomFields")
+library("raster")
+library("spatstat")
+library("maptools")
+library("sf")
+
+library("INLA")
+inla.setOption(pardiso.license = "pardiso.lic")
+inla.setOption(inla.mode = c("classic", "experimental"))
+
+library("rgeos")
+library("deldir")
+library("SDraw")

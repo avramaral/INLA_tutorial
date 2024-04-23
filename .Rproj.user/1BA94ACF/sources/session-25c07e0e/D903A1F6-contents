@@ -1,0 +1,33 @@
+library("INLA")
+library("tidyverse")
+library("sf")
+library("spdep")
+
+custom_theme <-  theme_bw() + theme(legend.position = "right", 
+                                    text = element_text(size = 14, family = "LM Roman 10"),
+                                    plot.title = element_text(size = 16),
+                                    legend.title = element_text(size = 12))
+
+
+table_model_comparison <- function (models, ...) {
+  
+  n_models <- length(models)
+  df <- as.data.frame(matrix(data = 0, nrow = n_models, ncol = 3))
+  rownames(df) <- names(models)
+  colnames(df) <- c("CPO", "DIC", "WAIC")
+  
+  for (i in 1:n_models) {
+    tmp_CPO  <- sum(log(models[[i]]$cpo$cpo)) * -1
+    tmp_DIC  <- models[[i]]$dic$dic
+    tmp_WAIC <- models[[i]]$waic$waic
+    
+    df[i, ] <- c(tmp_CPO, tmp_DIC, tmp_WAIC)
+  }
+  
+  df
+}
+
+##################################################
+##################################################
+
+data <- read_csv(file = "data/example_2/m_ohio.csv")

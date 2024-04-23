@@ -1,0 +1,80 @@
+effects <- list(rep(x = 1, times = n_vtx + n_pts))
+latt_id <- list()
+for (i in 1:length(A_pp)) { latt_id <- append(latt_id, list(SPDE_index)) } 
+effects <- append(effects, latt_id)
+names(effects) <- c("alpha", paste("j_", 1:length(A_pp), sep = ""))
+
+ps_stk_pp_e <- inla.stack(data = list(y = cbind(NA, y_pp), e = e_pp), A = append(1, A_pp), effects = effects, tag = "est_pp")
+
+if (is.null(pmat)) { # No prediction
+  
+  full_stack <- inla.stack(ps_stk_y_e, ps_stk_pp_e)
+  
+} else { # Prediction
+  
+  effects_pred <- effects
+  effects_pred[[1]] <- rep(x = 1, times = n_pts_pred)
+  
+  ps_stk_y_p  <- inla.stack(data = list(y = cbind(rep(x = NA, times = n_pts_pred), NA), e = rep(x = NA, times = n_pts_pred)), A = list(1, pmat_base), effects = list(mu = rep(x = 1, times = n_pts_pred), i = SPDE_index), tag = "pred_y")
+  ps_stk_pp_p <- inla.stack(data = list(y = cbind(NA, rep(x = NA, times = n_pts_pred)), e = rep(x =  1, times = n_pts_pred)), A = append(1, pmat), effects = effects_pred, tag = "pred_pp") 
+  full_stack <- inla.stack(ps_stk_y_e, ps_stk_pp_e, ps_stk_y_p, ps_stk_pp_p)
+}
+
+
+
+
+
+
+
+
+# Fitted values and prediction
+
+## Response
+
+idx_y  <- inla.stack.index(stk_full_pp_y, tag = "pred_y" )$data
+
+pred_y_mm  <- as.data.frame(cbind(coord_pred, model_6_1$summary.fitted.values[idx_y,  "mean"]))
+pred_y_ll  <- as.data.frame(cbind(coord_pred, model_6_1$summary.fitted.values[idx_y,  "0.025quant"]))
+pred_y_uu  <- as.data.frame(cbind(coord_pred, model_6_1$summary.fitted.values[idx_y,  "0.975quant"]))
+
+r_mm <- pred_y_mm$V3 %>% range()
+r_ll <- pred_y_ll$V3 %>% range()
+r_uu <- pred_y_uu$V3 %>% range()
+r <- c(min(r_mm[1], r_ll[1], r_uu[1]), max(r_mm[2], r_ll[2], r_uu[2]))
+
+pp_y_mm <- plot_pred_USA(fitted_values = pred_y_mm, USA = USA, r = r, tt = "Mean")
+pp_y_ll <- plot_pred_USA(fitted_values = pred_y_ll, USA = USA, r = r, tt = "2.5th")
+pp_y_uu <- plot_pred_USA(fitted_values = pred_y_uu, USA = USA, r = r, tt = "97.5th")
+
+(pp_y_ll + pp_y_mm + pp_y_uu) + plot_layout(guides = "collect") & theme(legend.position = "right")
+
+## Intensity process
+
+idx_pp <- inla.stack.index(stk_full_pp_y, tag = "pred_pp")$data
+
+pred_pp_mm <- as.data.frame(cbind(coord_pred, model_6_1$summary.fitted.values[idx_pp, "mean"]))
+pred_pp_ll <- as.data.frame(cbind(coord_pred, model_6_1$summary.fitted.values[idx_pp, "0.025quant"]))
+pred_pp_uu <- as.data.frame(cbind(coord_pred, model_6_1$summary.fitted.values[idx_pp, "0.975quant"]))
+
+# Expected number of observations
+sum(pred_pp_mm$V3 * (25 ** 2))
+
+r_mm <- pred_pp_mm$V3 %>% range()
+r_ll <- pred_pp_ll$V3 %>% range()
+r_uu <- pred_pp_uu$V3 %>% range()
+r <- c(min(r_mm[1], r_ll[1], r_uu[1]), max(r_mm[2], r_ll[2], r_uu[2]))
+
+pp_pp_mm <- plot_pred_USA(fitted_values = pred_pp_mm, USA = USA, r = r, tt = "Mean",   should_round = FALSE)
+pp_pp_ll <- plot_pred_USA(fitted_values = pred_pp_ll, USA = USA, r = r, tt = "2.5th",  should_round = FALSE)
+pp_pp_uu <- plot_pred_USA(fitted_values = pred_pp_uu, USA = USA, r = r, tt = "97.5th", should_round = FALSE)
+
+(pp_pp_ll + pp_pp_mm + pp_pp_uu) + plot_layout(guides = "collect") & theme(legend.position = "right")
+
+## Degree of preferentiality
+
+
+
+
+
+
+

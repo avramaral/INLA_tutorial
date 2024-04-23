@@ -1,0 +1,574 @@
+---
+title: "Inference in Point Processes"
+author: "André V. Ribeiro Amaral"
+format: 
+  html:
+    toc: true
+    html-math-method: katex
+    css: styles.css
+
+---
+
+```{r, echo = F}
+knitr::opts_knit$set(global.par = T)
+```
+
+```{r, echo = F}
+par(family = "LM Roman 10", mar = c(4, 4, 2, 0) + 0.25)
+set.seed(123)
+```
+
+In this tutorial, we will use the following `R` packages.
+
+```{r, result = "hide", message = F, warning = F}
+library("spatstat")
+library("inlabru")
+library("ggplot2")
+library("tmap")
+library("raster")
+library("rgeos")
+library("INLA")
+library("sf")
+```
+
+## Point process
+
+> Let $x \in \mathcal{D} \subseteq \mathbb{R}^n$, $n \in \{1, 2, \cdots\}$, such that $\mathcal{D}$ is the domain. Then, a **point process** $\xi$ is defined as a locally finite random subset of $\mathcal{D}$; that is, $\mathcal{N}(D) := \#(\xi \cap \text{D})$ is finite for all bounded subsets $\text{D} \subseteq \mathcal{D}$, where $\#(\text{A})$ denotes de cardinality of $\text{A}$.
+
+As a note, a **point process** is random mechanism whose outcome is a **point pattern**.
+
+## Intensity
+
+For a point process, we may define an **intensity function** as follows
+
+> Let $\lambda: \mathcal{D} \rightarrow [0, +\infty)$, such that $\int_{D}\lambda(x)dx < +\infty$, for all bounded $\text{D} \subseteq \mathcal{D}$. $\lambda(x)$ is the **intensity function** of a point process $\xi$, if $$\mathbb{E}[\mathcal{N}(D)] = \int_{\text{D}}\lambda(x)dx, ~ \text{D} \subseteq \mathcal{D}.$$
+
+If $\lambda(x) = \lambda$, $\forall x$, that is, if it is a constant function, notice that $\mathbb{E}[\mathcal{N}(D)] = \lambda \cdot |\text{D}|$. In that case, **$\lambda$ denotes the average number of points per unit area**. 
+
+Also, the intensity function is closely related to the probability density. 
+
+> If $\xi$ is a point process with intensity function $\lambda(x)$ defined on $\mathcal{D}$, then each individual point inside $\mathcal{D}$ has probability density $$f(x) = \frac{\lambda(x)}{\Lambda_{\mathcal{D}}},$$ where $$\Lambda_{\mathcal{D}} = \int_{\mathcal{D}}\lambda(x)dx.$$
+
+Using ``spatstat`` we can generate a point pattern containing $n$ independent, identically distributed random points with intensity $f$ using the ``rpoint()`` function.
+
+```{r}
+f <- function (x, y) { (x ** 2 + y ** 2) }
+x <- seq(-1, 1, 0.05)
+y <- seq(-1, 1, 0.05)
+z <- outer(X = x, Y = y, FUN = f)
+w <- owin(xrange = c(-1, 1), yrange = c(-1, 1)) # Area: (2 units x 2 units)
+
+pp <- rpoint(n = 200, f = f, win = w)
+
+par(mfrow = c(1, 2))
+persp(x, y, z, theta = 30)
+plot(pp, main = "")
+```
+
+## Poisson Point Process
+
+> A point process $\xi$ defined on $\mathcal{D}$ is a **Poisson point process** with intensity function $\lambda(x)$ if the following properties are satisfied
+>
+> 1. For any bounded $\text{D} \subseteq \mathcal{D}$, $\mathcal{N}(\text{D}) \sim \text{Poisson}(\int_{\text{D}}\lambda(x)dx)$.
+>
+> 2. For any bounded $\text{D} \subseteq \mathcal{D}$ and $n \in \mathbb{N}$, conditional on $\mathcal{N}(\text{D}) = n$, the events $\xi \cap \text{D}$ are independent with intensity proportional to $\lambda(x)$.
+
+As a note, it $\lambda(x) = \lambda$, $\forall x$, then $\xi$ is a **homogeneous Poisson process**; otherwise, it is a **non-homogeneous Poisson process**.
+
+### Homogeneous Poisson process
+
+We can manually simulate a homogeneous Poisson process as follows
+
+1. Determine $\mathcal{N}(D)$, for some $D \subseteq \mathcal{D}$.
+2. Simulate the number of events $n$ from a Poisson($\lambda\cdot|D|$).
+3. Obtain the location of the $n$ events by simulating from an uniform distribution.
+
+```{r}
+sim.HPP <- function (lambda, max = 1, min = 0, ...) {
+  m <- lambda * (max - min)
+  N <- rpois(1, lambda = m)
+  sort(runif(N, min = min, max = max))
+}
+
+hpp <- sim.HPP(lambda = 0.5, max = 100, min = 0)
+print(hpp)
+print(length(hpp))
+
+# Plot 1D PP
+plot1D.pp <- function (pp, xlim = NA, ...) {
+  par(mfrow = c(1, 1))
+  if (is.na(xlim)) { xlim <- c(floor(min(pp)), ceiling(max(pp))) }
+  plot(x = NA, xlab = "", ylab = "", xlim = xlim, ylim = c(0, 1), axes = FALSE, frame = FALSE, asp = diff(xlim) * 0.1) 
+  arrows(x0 = pp, y0 = 1, x1 = pp, y1 = 0)
+  axis(1, pos = 0)
+}
+
+plot1D.pp(hpp)
+
+```
+
+An unbiased estimator for $\lambda$ in a homogeneous Poisson process is $$\hat{\lambda} = \frac{\#(x)}{|D|},$$ where $\mathbf{x}$ is the point pattern data set, and $D$ is the observed in a window.
+```{r}
+(lambda_hat <- length(hpp) / 100)
+```
+
+### Non-homogeneous Poisson process
+
+To simulate from a non-homogeneous Poisson process, we can use the thinning approach ([Lewis and Shedler, 1979](https://onlinelibrary.wiley.com/doi/10.1002/nav.3800260304)).
+
+1. Find $\max(\lambda(x))$, i.e., the maximum of $\lambda(x)$ in $\mathcal{D}$.
+2. Simulate a homogeneous Poisson process with $\lambda = \max(\lambda(x) \cdot |D|)$.
+3. Accept each event with probability $\lambda(x_i)/\max(\lambda(x))$.
+
+For example, let $\lambda(x) = \exp(\beta_0 + \beta_1 \cdot x)$, such that $\beta_0 = -1$ and $\beta_1 = 0.015$.
+
+```{r}
+l <- function(x, par, log = FALSE, ...) { 
+  eta <- par[1] + par[2] * x
+  if (log) { res <- eta } else { res <- exp(eta) }
+  res
+}
+
+pts <- seq(0, 100, 0.1)
+par <- c(-1, 0.015)
+plot(x = pts, y = l(pts, par), type = "l", xlab = "x", ylab = "y")
+```
+
+In that case, $\mathbb{E}[\mathcal{N}(D)] = 85$, such that $D = [0, 100]$.
+
+```{r}
+integrate(l, lower = 0, upper = 100, par = par)
+```
+
+
+```{r}
+sim.NHPP <- function (par, FUN, max = 1, min = 0, ...) {
+  max_lb <- optimize(FUN, c(min, max), par = par, maximum = TRUE)$objective
+  lambda <- max_lb * (max - min)
+  # As in `sim.IPP()`
+  N <- rpois(1, lambda = lambda)
+  pts <- sort(runif(N, min = min, max = max))
+  # Accept or reject
+  p.accept <- FUN(pts, par) / max_lb
+  pp <- pts[runif(length(pts)) <= p.accept]
+  attributes(pp) <- list(simulated = length(pts), accepted = length(pp), rate = length(pp) / length(pts))
+  pp
+}
+
+nhpp <- sim.NHPP(par = par, FUN = l, max = 100, min = 0)
+print(unlist(attributes(nhpp)))
+
+plot1D.pp(nhpp)
+```
+
+## Likelihood function
+
+The likelihood function of a point process is obtained based on the density function of the two observed variables, namely the number of events $\mathcal{N}$ and the locations $\{x\}$.
+
+For a Poisson process, we have that $\mathcal{N}(D) \sim \text{Poisson}(\int_D\lambda(x)dx)$ and, for each $x$, $\mathbb{P}(x_i) = \lambda(x_i) / \int_D\lambda(x)dx$. Therefore,
+\begin{align*}
+L(\theta) &= \frac{e^{-(\int_D\lambda(x)dx)}(\int_D\lambda(x)dx)^N}{N!} \prod_{i = 1}^N \frac{\lambda(x_i)}{\int_D\lambda(x)dx} \\ &\propto e^{-(\int_D\lambda(x)dx)}\prod_{i = 1}^N\lambda(x_i),
+\end{align*}
+where $N$ is a a realization of $\mathcal{N}(D)$. The log-likelihood is given by
+\begin{align*}
+\ell(\theta) \propto \sum_{i = 1}^{N}\log(\lambda(x_i)) - \int_D\lambda(x)dx.
+\end{align*}
+
+For a homogeneous Poisson process,
+\begin{align*}
+\ell(\lambda) &\propto N \log(\lambda) - \lambda\cdot|D| \\
+\hat{\lambda} &= \frac{N(D)}{|D|}. 
+\end{align*}
+
+However, for a non-homogeneous Poisson process, the MLE for will depend of the form of $\lambda(x)$. In our previous example
+\begin{align*}
+  \ell(\beta_0 + \beta_1) \propto \sum_{i = 1}^N\log(\beta_0 + \beta_1x_i) - \int_D\beta_0 + \beta_1x dx.
+\end{align*}
+Although, in some cases it is possible to have a closed-form solution for $(\hat{\beta}_0, \hat{\beta}_1)^{\top}$, let us compute them numerically.
+
+### Example
+
+Let us implement the log-likelihood function as before
+```{r}
+lik.NHPP <- function (par, FUN, pp, max = 1, min = 0, ...) {
+  int.l <- integrate(FUN, low = min, upp = max, par = par)$value
+  sum.t <- sum(FUN(x = pp, par = par, log = T))
+  -(sum.t - int.l)
+}
+
+initial_values <- c(0, 0)
+(theta_hat <- optim(par = initial_values, fn = lik.NHPP, FUN = l, pp = nhpp, min = 0, max = 100)[1:2])
+
+```
+
+## Hypothesis test
+
+We can visually inspect whether the point pattern seemed to be sampled from a (non-)homogeneous process by counting the number of events by interval.
+
+```{r}
+
+L  <- psp(x0 = 0, y0 = 0, x1 = 100, y1 = 0, owin(c(0, 100), c(-5, 5)))
+pp <- as.ppp(cbind(c(nhpp), 0), W = L)
+
+q <- quadratcount(X = pp, nx = 8, ny = 1)
+plot(q, main = "")
+```
+
+Alternatively, we can conduct a hypothesis test. In particular, we test the null hypothesis that the data pattern is a realization of Complete Spatial Randomness"; i.e., uniform Poisson point process.
+
+```{r}
+ts <- quadrat.test(X = pp, nx = 8, ny = 1)
+ts
+```
+
+In the case of `nhpp` (known to be a realization from non-homogeneous process), at a 5% confidence level, we **reject** the null hypothesis data pattern is a realization of "Complete Spatial Randomness".
+
+## Cox Process
+
+As a generalization of a Poisson process, we can define a **Cox process**. In a nutshell, a Cox process allows the modelling of the non-observable spatial heterogeneity.
+
+> A Cox process can be seen as a doubly stochastic process. $\xi$ is a Cox process driven by $\Lambda(x)$ if
+>
+> 1. $\{\Lambda(x); x \in \mathcal{D}\}$ is a non-negative valued stochastic process.
+> 
+> 2. Conditional on $\{\Lambda(x) = \lambda(x); \mathbf{x} \in \mathcal{D}\}$, $\xi$ is a Poisson process with intensity function $\lambda(x)$.
+
+A particular case of a Cox process, named **log-Gaussian Cox process**, can be constructed by setting $\log\{\Lambda(x)\} = \mu^{\star}(x) + \zeta(x)$, such that $\mu(x) = \exp\{\mu^{\star}(x)\}$ is possibly interpreted as the mean structure of $\Lambda(x)$, and $\zeta(x)$ is a stationary Gaussian process, such that $\mathbb{E}(\zeta(x)) = -\sigma^2/2$, $\forall x$, and $\text{Cov}(\zeta(x_1), \zeta(x_2)) = \phi(h) = \sigma^2 \rho(h)$, where $h = ||x_1 - x_2||$ and $\sigma^2$ is the variance of $\zeta(x)$ .
+
+
+For instance, the correlation structure can be set as a Matérn model, that is, 
+$$
+\rho(h) = \frac{1}{2^{\nu - 1}\Gamma(\nu)}(\kappa \cdot h)^{\nu} \,\text{K}_{\nu}(\kappa \cdot h),
+$$
+such that $\nu$ and $\kappa$ are unknown parameters, and $\text{K}_{\nu}(\cdot)$ is a modified Bessel function of $2^{\text{nd}}$ order.
+
+## INLA and `R-INLA`
+
+To fit a LGCP model, we will use the Integrated Nested Laplace Approximation, INLA ([Rue et al., 2009](https://rss.onlinelibrary.wiley.com/doi/10.1111/j.1467-9868.2008.00700.x)), implemented in the ``R-INLA`` package. 
+
+In a nutshell, INLA is a method for approximating Bayesian inference in latent Gaussian models. In particular, it can be used to fit models of the form
+\begin{align*}
+	y_i|S(x_i), &\theta \sim \pi(y_i|S(x_i), \theta), \text{ for } i \in \{1, \cdots, n\} \\
+	S(x)|\theta &\sim \text{Normal}(\mu(\theta), Q(\theta)^{-1}) \\
+	\theta &\sim \pi(\theta),
+\end{align*}
+where $y = (y_1, \ldots, y_n)$ is the vector or observed values, $x = (x_1, \ldots, x_n)$ is a Gaussian random field, and $\theta = (\theta_1, \ldots, \theta_k)$, for some $k \in \mathbb{N}$, is a vector of hyperparameters. $\mu(\theta)$ and $Q(\theta)$ represent the mean vector and the precision matrix,
+respectively.
+
+### Fitting a LGCP with `R-INLA`
+
+Although we can use a Stochastic Partial Differential Equation (SPDE)-approach to fit LGCP models using INLA ([Simpson et al., 2016](https://arxiv.org/abs/1111.0641)), we will consider a partition of $\mathcal{D}$ given by cells $c_{i, j}$, for some set of index $(i, j)$.
+
+First, recall that if $\xi$ is a LGCP, then the mean number of events in a cell $c_{ij}$ is given by the integral of the intensity over the cell, that is, $\int_{c_{i,j}}\Lambda(x)dx$. Then, for sufficiently small cells, such an integral can be approximated by $|c_{i,j}|\Lambda(x)$, where $|c_{i, j}|$ is the area of the cell $c_{i, j}$.
+
+Thus, conditional on the latent Gaussian field $\zeta(x)$, the number of locations in the grid cell $c_{i, j}$, $\forall i, j$, are independent and Poisson distributed as follows
+$$
+\mathcal{N}(c_{ij})|\zeta(x) \sim \text{Poisson}(|c_{i, j}| \cdot \Lambda(x)),
+$$
+where $\zeta(x)$ is a Gaussian field.
+
+This approach is well documented in [Moraga, 2020](https://journal.r-project.org/archive/2021/RJ-2021-017/RJ-2021-017.pdf).
+
+#### Example 1
+
+For the first example, we will analyze the spatial locations of cases of lung cancer in `chorley` (from `spatstat.data`). 
+The data give the precise domicile addresses of new cases of cancer of the larynx (58 cases) and cancer of the lung (978 cases), recorded in the Chorley and South Ribble Health Authority of Lancashire (England) between 1974 and 1983.
+
+```{r, warning = F}
+print(chorley)
+plot(chorley, cols = c("red", rgb(0, 1, 0, 0.5)), pch = c(19, 4), cex = 0.75, main = "Cancer cases")
+
+lung <- chorley[chorley$marks == "lung"]
+lung <- ppp(x = lung$x, y = lung$y, window = lung$window)
+
+plot(lung, cols = "green", pch = 4, cex = 0.75, main = "Lung-cancer cases")
+```
+Let us start by creating a grid based study area.
+
+```{r}
+resolution <- 0.5
+map <- as(st_as_sf(lung$window), "Spatial") # Convert it to a `SpatialPolygonsDataFrame` object
+map$cancer <- "lung"
+plot(map)
+
+r <- raster(map, resolution = resolution) # Create a `raster` object based on the map and resolution
+(n_row <- nrow(r))
+(n_col <- ncol(r))
+```
+
+Now, we have to count the number of observations within all cells and save it on the `r` object. To do so, we can create a `SpatialPoints` object based on the observations locations and use the `cellFromXY()` to count the number of points in each cell. 
+```{r}
+r[] <- 0 # Set all `NA` to `0`
+dpts <- SpatialPoints(cbind(rev(lung$x), rev(lung$y))) # Convert the locations to a `SpatialPoints` object
+
+(tab <- table(cellFromXY(r, dpts))) 
+
+r[as.numeric(names(tab))] <- tab # Assign the number of observed events to the `raster` object
+plot(r)
+plot(map, add = T)
+```
+
+Then, we can create a ``grid`` variable based on the `raster` object. 
+
+```{r}
+grid <- rasterToPolygons(r) # Convert it to a `SpatialPolygonsDataFrame` object
+
+grid <- grid[as.vector(matrix(1:nrow(grid), nrow = n_row, ncol = n_col, byrow = T)), ] # Rearrange the indices numbering
+
+grid$id <- 1:nrow(grid)
+grid$Y <- grid$layer
+grid$cellarea <- resolution * resolution
+plot(grid)
+```
+
+Lastly, we just compute the intersection between ``grid`` and ``map``. This can be done using the ``raster::intersect()`` function (from the ``raster`` package, as the namespace suggests).
+
+```{r, message = F}
+gridmap <- raster::intersect(x = grid, y = map) # Compute the intersection between `grid` and `map`
+grid <- grid[grid$id %in% gridmap$id, ]
+
+plot(grid)
+plot(map, border = "red", lwd = 1, add = T)
+
+summary(grid)
+```
+
+Now that we have prepared all the data, we can fit the model using ``R-INLA``. To do so, we have to specify a ``formula`` and fit the model using the ``inla()`` function. For reference, check `inla.doc("matern2d")`.
+
+```{r, eval = F}
+
+# Change prior of the precision parameter from (1 / sigma^2) ~ Gamma(1, 0.0005) for PC prior for sigma
+# Prob(sigma > u) = alpha
+prior.list <- list(prec = list(prior = "pc.prec", param = c(0.25, 0.01))) # c(u, alpha)
+
+formula <- Y ~ 1 + f(id, model = "matern2d", nrow = n_row, ncol = n_col, nu = 1, hyper = prior.list) # Intercept + Matérn spatial random effects
+
+res <- inla(formula,
+            family = "poisson",
+            data = grid@data,
+            E = cellarea) # Acts like an offset
+
+```
+
+```{r, echo = F}
+res <- readRDS(file = "inla_res.RDS")
+```
+
+```{r}
+summary(res)
+```
+
+Now, we can plot the random effects.
+
+```{r, warning = F}
+grid$R.E. <- res$summary.random$id[grid$id, "mean"]
+
+gridborder <- gUnaryUnion(grid) # Plot the random effects using `tmap` package
+tm_shape(grid) + 
+  tm_polygons(col = c("R.E."), style = "cont", border.col = "transparent", midpoint = NA) +
+  tm_shape(gridborder) + 
+  tm_borders() +
+  tm_facets(ncol = 1) + 
+  tm_legend(legend.position = c("left", "bottom")) + tm_layout(fontfamily = "LM Roman 10", frame = FALSE)
+```
+
+From the above map, we **observe a non-constant pattern of the spatially structured random effect suggesting that the intensity of the process that generates the cancer-diagnosed patients’ locations may be affected by other spatial factors that have not been considered in the model**.
+
+```{r, warning = FALSE}
+cellarea   <- resolution * resolution
+grid$Mean  <- res$summary.fitted.values[, "mean"] * cellarea
+grid$Lower <- res$summary.fitted.values[, "0.025quant"] * cellarea
+grid$Upper <- res$summary.fitted.values[, "0.975quant"] * cellarea
+
+# Changing the margin size to accommodate the plot caption
+bbox_new <- st_bbox(grid)
+xrange <- bbox_new$xmax - bbox_new$xmin # range of x values
+yrange <- bbox_new$ymax - bbox_new$ymin # range of y values
+
+bbox_new[1] <- bbox_new[1] - (0.25 * xrange)
+bbox_new    <- bbox_new %>% st_as_sfc()
+
+# Main plot for the estimated intensity (along with a 95% equal-tail credible interval)
+tm_shape(grid, bbox = bbox_new) +
+  tm_polygons(col = c("Lower", "Mean", "Upper"),
+              style = 'fixed', border.col = "transparent",
+              breaks = c(0, 0.25, 0.5, 0.75, 1.0, 2, 5, 10, ceiling(max(grid$Upper)) + 1)) +
+  tm_shape(gridborder) + 
+  tm_borders() +
+  tm_facets(nrow = 3) + 
+  tm_legend(legend.position = c("left", "bottom")) + 
+  tm_layout(fontfamily = "LM Roman 10", frame = FALSE, inner.margins  = c(0, 0, 0, 0))
+```
+
+From the above plot, we can identify (while also accounting for the estimating uncertainty) the areas with high incidence of lung-cancer patients (denoted by the estimated intensity process). Based on such information, policymakers can focus their resources on regions that matter the most when dealing with cancer management.
+
+---
+
+We can also include a temporal random effect in the `R-INLA` `formula` (e.g., `f(id_time, model = "ar1")`), with possibly space-time interaction terms ([Held, 2000](https://onlinelibrary.wiley.com/doi/10.1002/1097-0258%2820000915/30%2919%3A17/18%3C2555%3A%3AAID-SIM587%3E3.0.CO%3B2-%23)). That is precisely what we will do in our next example.
+
+---
+
+#### Example 2
+
+For this example, we will analyze the location of terrorism attacks in a given country over the years. The two data objects (`terror_country.rds` and `area_country.rds`) can be downloaded from [here](https://avramaral.github.io/PP_inference/terror_country.rds) and [here](https://avramaral.github.io/PP_inference/area_country.rds), respectively.
+
+```{r}
+terror_country <- readRDS(file = "terror_country.rds")
+table(terror_country$country)
+```
+
+Aiming to have a larger data set, we analyze the country with the highest number of observed events, i.e., `IRQ`. Also, we will analyze observed events that occurred from 2010 to 2015.
+
+```{r}
+country_code <- "IRQ"
+
+terror_country <- terror_country[terror_country$country == country_code, ]
+terror_country <- terror_country[(terror_country$iyear >= 2010) & (terror_country$iyear <= 2015), ] 
+coordinates(terror_country) <- c("longitude", "latitude")
+proj4string(terror_country) <- "+proj=longlat"
+
+area_country <- readRDS(file = "area_country.rds")
+area_country <- area_country[area_country$sov_a3 == country_code, ]
+area_country <- spTransform(x = area_country, CRSobj = CRS("+proj=longlat"))
+
+plot(area_country, main = "")
+plot(terror_country, add = T, col = "green")
+```
+
+Now, given a partition, we can do as before, and count the number of events in each cell. However, notice that we also have to account for the variable year when doing so.
+
+```{r}
+resolution <- 0.5
+r <- raster(area_country, resolution = resolution) 
+(n_row <- nrow(r))
+(n_col <- ncol(r))
+
+terror_country$year <- terror_country$iyear - min(terror_country$iyear) + 1 
+n_years <- length(unique(terror_country$year))
+
+tab <- list()
+ras <- list()
+grids <- list()
+grids_map <- list()
+
+par(mfrow = c(2, 3), mar = c(2, 2, 2, 6) + 1)
+for (y in 1:n_years) {
+  tab[[y]] <- table(cellFromXY(r, terror_country[terror_country$year == y, ]))
+  ras[[y]] <- r
+  ras[[y]][as.numeric(names(tab[[y]]))] <- tab[[y]]
+  values(ras[[y]])[is.na(values(ras[[y]]))] <- 0
+  grids[[y]] <- rasterToPolygons(ras[[y]]) 
+  grids[[y]] <- grids[[y]][as.vector(matrix(1:nrow(grids[[y]]), nrow = n_row, ncol = n_col, byrow = T)), ] 
+  grids[[y]]$id <- 1:nrow(grids[[y]])
+  grids[[y]]$Y <- grids[[y]]$layer
+  grids[[y]]$cellarea <- resolution * resolution
+  grids_map[[y]] <- raster::intersect(x = grids[[y]], y = area_country) 
+  grids[[y]] <- grids[[y]][grids[[y]]$id %in% grids_map[[y]]$id, ]
+  
+  plot(ras[[y]], main = y)
+  plot(area_country, add = T)
+}
+par(mfrow = c(1, 1))
+```
+
+Then, we can create a data object with the extra id_time index.
+
+```{r}
+for (y in 1:n_years) {
+  if (y == 1) {
+    data_inla <- grids[[y]]@data
+  } else {
+    data_inla <- rbind(data_inla, grids[[y]]@data)
+  }
+}
+data_inla <- cbind(data_inla, id_time = rep(x = 1:n_years, each = nrow(grids[[1]])))
+data_inla[c(1:3, ((nrow(data_inla) - 2):nrow(data_inla))), ]
+```
+
+Finally, we can fit the model. In our case, we will define 
+\begin{align*}
+\zeta(x, t) = \zeta_1(x) + \zeta_2(t),
+\end{align*}
+where $\zeta_1(x)$ is a spatial model (e.g., Matérn) and $\zeta_2(t)$ is a temporal model (e.g., AR1).
+
+Alternatively, we could fit a model with interaction. For example, for $x_i \in \mathcal{D}$,
+\begin{align*}
+\zeta(x_i, t) = \alpha \zeta(x_i, t - 1) + \phi(x_i, t)
+\end{align*}
+where $|\alpha| < 1$ and $\zeta(x, 1)$ follows a stationary distribution of a first-order autoregressive process (AR1), namely $\text{Normal}(0, \sigma^2_{\omega}/(1 - \alpha^2))$. And each $\phi(x, t)$ follows a zero-mean Gaussian distribution temporally independent but spatially dependent at each time. In general, from [Held, 2000](https://onlinelibrary.wiley.com/doi/10.1002/1097-0258%2820000915/30%2919%3A17/18%3C2555%3A%3AAID-SIM587%3E3.0.CO%3B2-%23),
+
+![](./inter_types.png)
+
+Getting back to the chosen model, we have
+
+```{r, eval = F}
+
+prior.list <- list(prec = list(prior = "pc.prec", param = c(0.25, 0.01))) # Priors
+
+# Separable space-temporal model: eta_ij = beta_0 + u_i + v_j
+formula <- Y ~ 1 + f(id, 
+                     model = "matern2d", 
+                     nrow = n_row, 
+                     ncol = n_col, 
+                     nu = 1, 
+                     hyper = prior.list) + f(id_time, model = "ar1")
+
+# Model with interaction: eta_ij = beta_0 + u_ij
+# formula <- Y ~ 1 + f(id, 
+#                      model = "matern2d", 
+#                      nrow = n_row, 
+#                      ncol = n_col, 
+#                      nu = 1, 
+#                      group = id_time,
+#                      control.group = list(model = "ar1"),
+#                      hyper = prior.list)
+                  
+res <- inla(formula,
+            family = "poisson",
+            data = data_inla,
+            E = resolution)
+
+```
+
+```{r, echo = F}
+res <- readRDS(file = "res_st.rds")
+```
+
+```{r}
+summary(res)
+```
+
+astly, as in the previous example, we can plot the estimated intensity for all years.
+
+```{r, fig.width = 15, fig.height = 8, message = F, warning = F}
+grid       <- grids[[1]]
+cells_grid <- nrow(grids[[1]])
+cellarea   <- resolution * resolution
+
+grid$M1 <- res$summary.fitted.values[, "mean"][1:cells_grid] * cellarea
+grid$M2 <- res$summary.fitted.values[, "mean"][(cells_grid + 1):(cells_grid * 2)] * cellarea
+grid$M3 <- res$summary.fitted.values[, "mean"][(cells_grid * 2 + 1):(cells_grid * 3)] * cellarea
+grid$M4 <- res$summary.fitted.values[, "mean"][(cells_grid * 3 + 1):(cells_grid * 4)] * cellarea
+grid$M5 <- res$summary.fitted.values[, "mean"][(cells_grid * 4 + 1):(cells_grid * 5)] * cellarea
+grid$M6 <- res$summary.fitted.values[, "mean"][(cells_grid * 5 + 1):(cells_grid * 6)] * cellarea
+
+max_int <- ceiling(max(c(grid$M1, grid$M2, grid$M3, grid$M4, grid$M5, grid$M6)))
+max_int <- ceiling(max_int / 10) * 10
+
+bbox_new <- st_bbox(grid)
+xrange <- bbox_new$xmax - bbox_new$xmin # range of x values
+yrange <- bbox_new$ymax - bbox_new$ymin # range of y values
+
+bbox_new[1] <- bbox_new[1] - (0.25 * xrange)
+bbox_new <- bbox_new %>% st_as_sfc()
+
+gridborder <- gUnaryUnion(grid) 
+tm_shape(grid, bbox = bbox_new) +
+  tm_polygons(col = c("M1", "M2", "M3", "M4", "M5", "M6"),
+              style = 'fixed', border.col = "transparent",
+              breaks = c(0, 1, 3, 5, 10, 20, 30, 50, max_int)) + 
+  tm_shape(gridborder) + tm_borders() +
+  tm_facets(ncol = 3) + tm_legend(legend.position = c("left", "bottom")) +
+  tm_layout(fontfamily = "LM Roman 10", frame = FALSE)
+
+```
