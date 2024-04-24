@@ -673,7 +673,7 @@ In a nutshell, in the grouped random effected,
 1.  There is a **within** group correlation structure, and
 2.  There is a **between** group correlation structure.
 
-In particular, if $y_{g, i}$ is the $i$-the element in group $g$, then $\text{Cov}(y_{g_1, i_1}, y_{g_2, i_2}) = (\text{cov. between groups } g_1 \text{ and } g_2) \times (\text{cov. between elements } g_1 \text{ and } g_2)$ ([Simpson, 2016](http://faculty.washington.edu/jonno/SISMIDmaterial/8-Groupedmodels.pdf)).
+In particular, if $y_{g, i}$ is the $i$-the element in group $g$, then $\text{Cov}(y_{g_1, i_1}, y_{g_2, i_2}) = (\text{cov. between groups } g_1 \text{ and } g_2) \times (\text{cov. between elements } i_1 \text{ and } i_2)$ ([Simpson, 2016](http://faculty.washington.edu/jonno/SISMIDmaterial/8-Groupedmodels.pdf)).
 
 In `INLA`, the within-group effect is the one defined in the main `f()` function, while the between effect is the one defined using the `control.group` argument.
 
@@ -752,6 +752,12 @@ For fitting such a model, we can rely on a stochastic partial differential equat
 
 Based on this result, [Lindgren et al.](https://academic.oup.com/jrsssb/article/73/4/423/7034732) ([2011](https://academic.oup.com/jrsssb/article/73/4/423/7034732)) proposed a new procedure for representing a Gaussian random field with Matérn covariance as a Gaussian Markov Random Field (GMRF). They did this by expressing a solution of the SPDE using the Finite Element Method (FEM).
 
+As in [Moraga (2019)](https://www.paulamoraga.com/book-geospatial/sec-geostatisticaldatatheory.html#stochastic-partial-differential-equation-approach),
+
+> An approximate solution of the SPDE can be found by using the Finite Element method. This method divides the spatial domain into a set of non-intersecting triangles leading to a triangulated mesh with $n$ nodes and $n$ basis functions. Basis functions $\{\phi_k(x)\}_{k = 1}^{n}$ are defined as piecewise linear functions on each triangle that is equal to $1$ at vertex $k$, and equal to $0$ at the other vertices. Then, the continuously indexed Gaussian field $\zeta$ is represented as a discretely indexed Gaussian Markov random field (GMRF) by means of the finite basis functions defined on the triangulated mesh $$\zeta(x) = \sum_{k = 1}^{n} \beta_k \phi_k(x),$$ where $n$ is the number of vertices of the triangulation, $\{\phi_k(x)\}_{k = 1}^{n}$ denotes the piecewise linear basis functions, and $\{\beta_k\}_{k = 1}^{n}$ are zero-mean Gaussian distributed weights.
+
+---
+
 The smoothness parameter $\nu$ of the Matérn covariance structure is related to $\alpha$ in the SPDE formulation through $\alpha = \nu + (d / 2)$, where $d$ (typically $d = 2$) is dimension. In `INLA`, $0 \leq \alpha < 2$.
 
 ## PM2.5
@@ -791,7 +797,7 @@ data_USA  <- data_USA %>% rename(lon = X, lat = Y) %>% dplyr::select(mean, sd, l
 head(data_USA)
 ```
 
-And create the mesh with the `inla.mesh.2d()` function.
+And create the mesh with the `inla.mesh.2d()` function. A tool for mesh assessment is described [here](https://becarioprecario.bitbucket.io/spde-gitbook/ch-intro.html#sec:toolsmesh).
 
 ```{r}
 # `max.edge`: the largest allowed triangle edge length. One or two values.

@@ -1188,7 +1188,7 @@ Posterior summaries for the linear predictor and the fitted values are computed
 <li>There is a <strong>within</strong> group correlation structure, and</li>
 <li>There is a <strong>between</strong> group correlation structure.</li>
 </ol>
-<p>In particular, if <span class="math inline">y_{g, i}</span> is the <span class="math inline">i</span>-the element in group <span class="math inline">g</span>, then <span class="math inline">\text{Cov}(y_{g_1, i_1}, y_{g_2, i_2}) = (\text{cov. between groups } g_1 \text{ and } g_2) \times (\text{cov. between elements } g_1 \text{ and } g_2)</span> (<a href="http://faculty.washington.edu/jonno/SISMIDmaterial/8-Groupedmodels.pdf">Simpson, 2016</a>).</p>
+<p>In particular, if <span class="math inline">y_{g, i}</span> is the <span class="math inline">i</span>-the element in group <span class="math inline">g</span>, then <span class="math inline">\text{Cov}(y_{g_1, i_1}, y_{g_2, i_2}) = (\text{cov. between groups } g_1 \text{ and } g_2) \times (\text{cov. between elements } i_1 \text{ and } i_2)</span> (<a href="http://faculty.washington.edu/jonno/SISMIDmaterial/8-Groupedmodels.pdf">Simpson, 2016</a>).</p>
 <p>In <code>INLA</code>, the within-group effect is the one defined in the main <code>f()</code> function, while the between effect is the one defined using the <code>control.group</code> argument.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb81"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb81-1"><a href="#cb81-1" aria-hidden="true" tabindex="-1"></a>formula_3 <span class="ot">&lt;-</span> Y <span class="sc">~</span> <span class="dv">0</span> <span class="sc">+</span> <span class="dv">1</span> <span class="sc">+</span> <span class="fu">f</span>(id_area, <span class="at">model =</span> <span class="st">"besag"</span>, <span class="at">graph =</span> g, </span>
@@ -1336,6 +1336,11 @@ Posterior summaries for the linear predictor and the fitted values are computed
     (\kappa^2 - \Delta)^{\alpha/2}(\tau S(x)) = \mathcal{W}(x),
 \end{align*}</span> where <span class="math inline">\Delta</span> is the Laplacian, <span class="math inline">\mathcal{W}(s)</span> is a Gaussian white-noise random process, <span class="math inline">\alpha</span> controls the smoothness of the random field, <span class="math inline">\tau</span> controls the variance, and <span class="math inline">\kappa</span> is a scale parameter.</p>
 <p>Based on this result, <a href="https://academic.oup.com/jrsssb/article/73/4/423/7034732">Lindgren et al.</a> (<a href="https://academic.oup.com/jrsssb/article/73/4/423/7034732">2011</a>) proposed a new procedure for representing a Gaussian random field with Matérn covariance as a Gaussian Markov Random Field (GMRF). They did this by expressing a solution of the SPDE using the Finite Element Method (FEM).</p>
+<p>As in <a href="https://www.paulamoraga.com/book-geospatial/sec-geostatisticaldatatheory.html#stochastic-partial-differential-equation-approach">Moraga (2019)</a>,</p>
+<blockquote class="blockquote">
+<p>An approximate solution of the SPDE can be found by using the Finite Element method. This method divides the spatial domain into a set of non-intersecting triangles leading to a triangulated mesh with <span class="math inline">n</span> nodes and <span class="math inline">n</span> basis functions. Basis functions <span class="math inline">\{\phi_k(x)\}_{k = 1}^{n}</span> are defined as piecewise linear functions on each triangle that is equal to <span class="math inline">1</span> at vertex <span class="math inline">k</span>, and equal to <span class="math inline">0</span> at the other vertices. Then, the continuously indexed Gaussian field <span class="math inline">\zeta</span> is represented as a discretely indexed Gaussian Markov random field (GMRF) by means of the finite basis functions defined on the triangulated mesh <span class="math display">\zeta(x) = \sum_{k = 1}^{n} \beta_k \phi_k(x),</span> where <span class="math inline">n</span> is the number of vertices of the triangulation, <span class="math inline">\{\phi_k(x)\}_{k = 1}^{n}</span> denotes the piecewise linear basis functions, and <span class="math inline">\{\beta_k\}_{k = 1}^{n}</span> are zero-mean Gaussian distributed weights.</p>
+</blockquote>
+<hr>
 <p>The smoothness parameter <span class="math inline">\nu</span> of the Matérn covariance structure is related to <span class="math inline">\alpha</span> in the SPDE formulation through <span class="math inline">\alpha = \nu + (d / 2)</span>, where <span class="math inline">d</span> (typically <span class="math inline">d = 2</span>) is dimension. In <code>INLA</code>, <span class="math inline">0 \leq \alpha &lt; 2</span>.</p>
 <section id="pm2.5" class="level2">
 <h2 class="anchored" data-anchor-id="pm2.5">PM2.5</h2>
@@ -1412,7 +1417,7 @@ Projected CRS: +init=epsg:6345 +units=km +no_defs
 6  8.44  3.39  500. 3688. (499.6639 3687.995)</code></pre>
 </div>
 </div>
-<p>And create the mesh with the <code>inla.mesh.2d()</code> function.</p>
+<p>And create the mesh with the <code>inla.mesh.2d()</code> function. A tool for mesh assessment is described <a href="https://becarioprecario.bitbucket.io/spde-gitbook/ch-intro.html#sec:toolsmesh">here</a>.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb98"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb98-1"><a href="#cb98-1" aria-hidden="true" tabindex="-1"></a><span class="co"># `max.edge`: the largest allowed triangle edge length. One or two values.</span></span>
 <span id="cb98-2"><a href="#cb98-2" aria-hidden="true" tabindex="-1"></a><span class="co"># `offset`: the automatic extension distance. One or two values, for an inner and an optional outer extension.</span></span>
